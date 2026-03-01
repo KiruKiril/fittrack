@@ -1,28 +1,66 @@
-# Angular specific
-/dist/
-/out-tsc/
-/tmp/
-/coverage/
-/e2e/test-output/
-/.angular/
+# ================================
+# JAVA / SPRING BOOT
+# ================================
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+
+# Gradle
+.gradle/
+build/
+
+# Spring Boot local config
+application-local.properties
+application-local.yml
+
+# ================================
+# ANGULAR / NODE
+# ================================
+node_modules/
+dist/
+tmp/
+out-tsc/
+bazel-out/
+
+# Angular cache
 .angular/
 
-# Node modules and dependency files
-/node_modules/
-/package-lock.json
-/yarn.lock
+# NPM
+npm-debug.log
+yarn-error.log
 
-# Environment files
-/.env
+# ================================
+# ENVIRONMENT & SECRETS
+# ================================
+.env
+.env.local
+.env.*.local
+*.secret
+secrets.properties
 
-# Angular CLI and build artefacts
-/.angular-cli.json
-/.ng/
+# ================================
+# IDE
+# ================================
+.idea/
+*.iml
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
-# TypeScript cache
-*.tsbuildinfo
-
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# ================================
+# OS
+# ================================
+.DS_Store
+Thumbs.db
