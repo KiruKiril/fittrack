@@ -50,4 +50,14 @@ public class WorkoutController {
         workoutService.deleteWorkout(id, userDetails.getUsername());
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<WorkoutResponse> updateWorkout(
+            @PathVariable Long id,
+            @RequestBody WorkoutRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(
+                workoutService.updateWorkout(id, request, userDetails.getUsername())
+        );
+    }
 }
