@@ -54,7 +54,17 @@ public class WorkoutService {
         return workoutRepository.findByUserId(user.getId());
     }
 
-    public void deleteWorkout(Long id) {
+    public void deleteWorkout(Long id, String username) {
+        var user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        Workout workout = workoutRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Workout not found"));
+
+        if (!workout.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Not authorized to delete this workout");
+        }
+
         workoutRepository.deleteById(id);
     }
 }
