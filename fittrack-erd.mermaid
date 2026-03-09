@@ -1,0 +1,64 @@
+erDiagram
+    USER {
+        long id PK
+        string username
+        string email
+        string password
+        datetime created_at
+    }
+
+    UEBUNG {
+        long id PK
+        long user_id FK
+        string name
+        string beschreibung
+        int empf_wiederholungen
+    }
+
+    TRAINING {
+        long id PK
+        long user_id FK
+        string name
+        string beschreibung
+    }
+
+    TRAINING_UEBUNG {
+        long id PK
+        long training_id FK
+        long uebung_id FK
+        int empf_saetze
+    }
+
+    TRAINING_AUSFUEHRUNG {
+        long id PK
+        long training_id FK
+        long user_id FK
+        datetime datum
+        string ort
+    }
+
+    UEBUNG_SESSION {
+        long id PK
+        long training_ausfuehrung_id FK
+        long uebung_id FK
+    }
+
+    SATZ {
+        long id PK
+        long uebung_session_id FK
+        int wiederholungen
+        double gewicht
+        boolean dropset
+    }
+
+    USER ||--o{ UEBUNG : "erstellt"
+    USER ||--o{ TRAINING : "erstellt"
+    USER ||--o{ TRAINING_AUSFUEHRUNG : "fuehrt aus"
+
+    TRAINING ||--o{ TRAINING_UEBUNG : "enthaelt"
+    UEBUNG ||--o{ TRAINING_UEBUNG : "ist teil von"
+
+    TRAINING ||--o{ TRAINING_AUSFUEHRUNG : "basiert auf"
+    TRAINING_AUSFUEHRUNG ||--o{ UEBUNG_SESSION : "enthaelt"
+    UEBUNG ||--o{ UEBUNG_SESSION : "referenziert"
+    UEBUNG_SESSION ||--o{ SATZ : "enthaelt"
