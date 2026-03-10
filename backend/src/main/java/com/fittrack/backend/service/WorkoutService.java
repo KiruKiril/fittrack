@@ -1,6 +1,5 @@
 package com.fittrack.backend.service;
 
-import com.fittrack.backend.dto.ExerciseRequest;
 import com.fittrack.backend.dto.WorkoutRequest;
 import com.fittrack.backend.dto.WorkoutResponse;
 import com.fittrack.backend.entity.Exercise;
