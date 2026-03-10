@@ -1,0 +1,8 @@
+spring.datasource.url=jdbc:postgresql://localhost:5432/fittrack
+spring.datasource.username=
+spring.datasource.password=
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+
+jwt.secret=DEIN_SECRET_HIER
+jwt.expiration=86400000
