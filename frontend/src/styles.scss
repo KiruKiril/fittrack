@@ -137,7 +137,7 @@ button, input, select, textarea {
 }
 
 .stack { display: flex; flex-direction: column; gap: 16px; }
-.row { display: flex; align-items: center; gap: 10px; }
+.row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .row-between { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .grid-cards {
   display: grid;

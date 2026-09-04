@@ -14,10 +14,10 @@
           Pausen: {{ t.defaultPauseZwischenSaetzenSekunden }}s zw. Sätzen · {{ t.defaultPauseZwischenUebungenSekunden }}s zw. Übungen
         </p>
       </div>
-      <div class="row">
-        <button class="btn btn-danger" (click)="remove()">Löschen</button>
-        <a class="btn btn-secondary" [routerLink]="['/log/neu', t.id]">Manuell eintragen</a>
+      <div class="page-actions">
         <a class="btn btn-primary" [routerLink]="['/trainings', t.id, 'live']">▶ Trainieren</a>
+        <a class="btn btn-secondary" [routerLink]="['/log/neu', t.id]">Manuell eintragen</a>
+        <button class="btn btn-danger" (click)="remove()">Löschen</button>
       </div>
     </div>
 
