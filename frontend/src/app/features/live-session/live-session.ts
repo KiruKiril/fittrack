@@ -192,9 +192,9 @@ export class LiveSession implements OnDestroy {
 
       if (typ === 'KRAFT') {
         const previousSaetze = this.findPreviousSaetze(pu.uebungId, sortedLogs);
+        const previous = this.pickBestSatz(previousSaetze);
         const setCount = Math.max(1, pu.empfSaetze || 1);
         for (let s = 1; s <= setCount; s++) {
-          const previous = previousSaetze[s - 1] ?? previousSaetze[previousSaetze.length - 1] ?? null;
           steps.push({
             uebungId: pu.uebungId,
             uebungName: pu.uebungName ?? '',
@@ -248,6 +248,30 @@ export class LiveSession implements OnDestroy {
       if (session) return session.saetze;
     }
     return [];
+  }
+
+  /**
+   * Statt satzweise das letzte Mal nachzubilden (was bei ermuedungsbedingt sinkenden Werten
+   * pro Satz irrefuehrend waere), wird EIN Referenzsatz gewaehlt und fuer alle Saetze dieses
+   * Mal als Vorschlag verwendet: bei Uebungen mit Zusatzgewicht der Satz mit dem meisten
+   * Gewicht (bei Gleichstand die meisten Wiederholungen), sonst (z.B. Bodyweight-Uebungen wie
+   * Klimmzuege) der Satz mit den meisten Wiederholungen.
+   */
+  private pickBestSatz(saetze: { wiederholungen: number; gewicht: number }[]): { wiederholungen: number; gewicht: number } | null {
+    if (saetze.length === 0) return null;
+
+    const mitGewicht = saetze.filter((s) => s.gewicht > 0);
+    const kandidaten = mitGewicht.length > 0 ? mitGewicht : saetze;
+    const vergleicheNachGewicht = mitGewicht.length > 0;
+
+    return kandidaten.reduce((best, aktuell) => {
+      if (vergleicheNachGewicht) {
+        if (aktuell.gewicht > best.gewicht) return aktuell;
+        if (aktuell.gewicht === best.gewicht && aktuell.wiederholungen > best.wiederholungen) return aktuell;
+        return best;
+      }
+      return aktuell.wiederholungen > best.wiederholungen ? aktuell : best;
+    });
   }
 
   private findPreviousAusdauer(uebungId: number, sortedLogs: TrainingAusfuehrung[]) {
