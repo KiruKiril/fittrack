@@ -17,4 +17,5 @@ export interface Training {
   defaultPauseZwischenUebungenSekunden: number;
   createdAt?: string;
   uebungen: TrainingUebung[];
+  bibliothek?: boolean;
 }

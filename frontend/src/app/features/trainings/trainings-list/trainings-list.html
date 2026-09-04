@@ -4,11 +4,42 @@
       <h1>Trainings</h1>
       <p>Deine Trainingspläne — leg fest, was trainiert wird.</p>
     </div>
-    <a class="btn btn-primary" routerLink="/trainings/neu">+ Trainingsplan anlegen</a>
+    <div class="row">
+      <button class="btn btn-secondary" (click)="toggleBibliothek()">
+        {{ bibliothekOpen() ? 'Bibliothek schließen' : '+ Aus Bibliothek hinzufügen' }}
+      </button>
+      <a class="btn btn-primary" routerLink="/trainings/neu">+ Trainingsplan anlegen</a>
+    </div>
   </div>
 
   @if (error()) {
     <div class="form-error">{{ error() }}</div>
+  }
+
+  @if (bibliothekOpen()) {
+    <section class="card card-pad stack bibliothek-panel">
+      <h2>Bibliothek</h2>
+      <p class="muted">Von fittrack bereitgestellte Trainingspläne — füge sie zu deinen eigenen hinzu.</p>
+      @if (bibliothekLoading()) {
+        <p class="muted">Lädt…</p>
+      } @else if (bibliothek().length === 0) {
+        <p class="muted">Du hast bereits alle Bibliotheks-Trainings hinzugefügt.</p>
+      } @else {
+        <div class="bibliothek-list">
+          @for (t of bibliothek(); track t.id) {
+            <div class="bibliothek-row">
+              <div>
+                <span class="bibliothek-row-name">{{ t.name }}</span>
+                <p class="training-uebungen">{{ typenLabel(t) }}</p>
+              </div>
+              <button class="btn btn-secondary btn-sm" [disabled]="addingId() === t.id" (click)="addFromBibliothek(t, $event)">
+                {{ addingId() === t.id ? 'Fügt hinzu…' : '+ Hinzufügen' }}
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </section>
   }
 
   @if (loading()) {
@@ -23,8 +54,11 @@
       @for (t of trainings(); track t.id) {
         <a class="card card-pad training-card" [routerLink]="['/trainings', t.id]">
           <div class="row-between">
-            <h3>{{ t.name }}</h3>
-            <button class="btn btn-danger btn-sm" (click)="remove(t, $event)">Löschen</button>
+            <div class="row">
+              <h3>{{ t.name }}</h3>
+              @if (t.bibliothek) { <span class="badge badge-bibliothek">Bibliothek</span> }
+            </div>
+            <button class="btn btn-danger btn-sm" (click)="remove(t, $event)">{{ t.bibliothek ? 'Entfernen' : 'Löschen' }}</button>
           </div>
           @if (t.beschreibung) { <p class="training-desc">{{ t.beschreibung }}</p> }
           <p class="training-uebungen">{{ typenLabel(t) }}</p>

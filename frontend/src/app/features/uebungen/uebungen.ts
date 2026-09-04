@@ -20,6 +20,11 @@ export class Uebungen {
   formOpen = signal(false);
   saving = signal(false);
 
+  bibliothek = signal<Uebung[]>([]);
+  bibliothekOpen = signal(false);
+  bibliothekLoading = signal(false);
+  addingId = signal<number | null>(null);
+
   form = this.fb.nonNullable.group({
     name: ['', Validators.required],
     typ: ['KRAFT' as UebungTyp, Validators.required],
@@ -90,11 +95,52 @@ export class Uebungen {
 
   remove(uebung: Uebung): void {
     if (!uebung.id) return;
-    if (!confirm(`"${uebung.name}" wirklich löschen?`)) return;
+    const frage = uebung.bibliothek
+      ? `"${uebung.name}" aus deiner Liste entfernen?`
+      : `"${uebung.name}" wirklich löschen?`;
+    if (!confirm(frage)) return;
 
     this.uebungService.delete(uebung.id).subscribe({
       next: () => this.uebungen.update((list) => list.filter((u) => u.id !== uebung.id)),
-      error: (err) => this.error.set(extractErrorMessage(err, 'Übung konnte nicht gelöscht werden.'))
+      error: (err) => this.error.set(extractErrorMessage(err, 'Übung konnte nicht entfernt werden.'))
+    });
+  }
+
+  toggleBibliothek(): void {
+    this.bibliothekOpen.update((v) => !v);
+    this.error.set(null);
+    if (this.bibliothekOpen()) {
+      this.loadBibliothek();
+    }
+  }
+
+  private loadBibliothek(): void {
+    this.bibliothekLoading.set(true);
+    this.uebungService.getBibliothek().subscribe({
+      next: (data) => {
+        this.bibliothek.set(data);
+        this.bibliothekLoading.set(false);
+      },
+      error: (err) => {
+        this.error.set(extractErrorMessage(err, 'Bibliothek konnte nicht geladen werden.'));
+        this.bibliothekLoading.set(false);
+      }
+    });
+  }
+
+  addFromBibliothek(uebung: Uebung): void {
+    if (!uebung.id) return;
+    this.addingId.set(uebung.id);
+    this.uebungService.addFromBibliothek(uebung.id).subscribe({
+      next: (added) => {
+        this.uebungen.update((list) => [...list, added]);
+        this.bibliothek.update((list) => list.filter((u) => u.id !== uebung.id));
+        this.addingId.set(null);
+      },
+      error: (err) => {
+        this.error.set(extractErrorMessage(err, 'Übung konnte nicht hinzugefügt werden.'));
+        this.addingId.set(null);
+      }
     });
   }
 }

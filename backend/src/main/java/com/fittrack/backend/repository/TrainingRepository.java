@@ -9,4 +9,10 @@ import java.util.List;
 @Repository
 public interface TrainingRepository extends JpaRepository<Training, Long> {
     List<Training> findByUserId(Long userId);
+
+    List<Training> findByUserIsNull();
+
+    List<Training> findByIdIn(List<Long> ids);
+
+    long countByUserIsNull();
 }

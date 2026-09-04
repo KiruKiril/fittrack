@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface TrainingUebungRepository extends JpaRepository<TrainingUebung, Long> {
     List<TrainingUebung> findByTrainingId(Long trainingId);
+
+    boolean existsByUebungIdAndTrainingIdIn(Long uebungId, List<Long> trainingIds);
 }

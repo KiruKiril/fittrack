@@ -14,6 +14,8 @@ public class UebungResponse {
     private String beschreibung;
     private int empfWiederholungen;
     private LocalDateTime createdAt;
+    /** true = Bibliotheks-Uebung, von der App bereitgestellt und nicht vom eingeloggten User erstellt. */
+    private boolean bibliothek;
 
     public static UebungResponse from(Uebung uebung) {
         UebungResponse dto = new UebungResponse();
@@ -23,6 +25,7 @@ public class UebungResponse {
         dto.setBeschreibung(uebung.getBeschreibung());
         dto.setEmpfWiederholungen(uebung.getEmpfWiederholungen());
         dto.setCreatedAt(uebung.getCreatedAt());
+        dto.setBibliothek(uebung.getUser() == null);
         return dto;
     }
 }

@@ -4,13 +4,46 @@
       <h1>Übungen</h1>
       <p>Deine Übungsdefinitionen — Kraft oder Ausdauer.</p>
     </div>
-    <button class="btn btn-primary" (click)="toggleForm()">
-      {{ formOpen() ? 'Abbrechen' : '+ Übung anlegen' }}
-    </button>
+    <div class="row">
+      <button class="btn btn-secondary" (click)="toggleBibliothek()">
+        {{ bibliothekOpen() ? 'Bibliothek schließen' : '+ Aus Bibliothek hinzufügen' }}
+      </button>
+      <button class="btn btn-primary" (click)="toggleForm()">
+        {{ formOpen() ? 'Abbrechen' : '+ Übung anlegen' }}
+      </button>
+    </div>
   </div>
 
   @if (error()) {
     <div class="form-error">{{ error() }}</div>
+  }
+
+  @if (bibliothekOpen()) {
+    <section class="card card-pad stack bibliothek-panel">
+      <h2>Bibliothek</h2>
+      <p class="muted">Von fittrack bereitgestellte Übungen — füge sie zu deinen eigenen hinzu.</p>
+      @if (bibliothekLoading()) {
+        <p class="muted">Lädt…</p>
+      } @else if (bibliothek().length === 0) {
+        <p class="muted">Du hast bereits alle Bibliotheks-Übungen hinzugefügt.</p>
+      } @else {
+        <div class="bibliothek-list">
+          @for (u of bibliothek(); track u.id) {
+            <div class="bibliothek-row">
+              <div>
+                <span class="badge" [class.badge-kraft]="u.typ === 'KRAFT'" [class.badge-ausdauer]="u.typ === 'AUSDAUER'">
+                  {{ u.typ === 'KRAFT' ? 'Kraft' : 'Ausdauer' }}
+                </span>
+                <span class="bibliothek-row-name">{{ u.name }}</span>
+              </div>
+              <button class="btn btn-secondary btn-sm" [disabled]="addingId() === u.id" (click)="addFromBibliothek(u)">
+                {{ addingId() === u.id ? 'Fügt hinzu…' : '+ Hinzufügen' }}
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </section>
   }
 
   @if (formOpen()) {
@@ -63,8 +96,11 @@
           @for (u of kraftUebungen(); track u.id) {
             <div class="card card-pad uebung-card">
               <div class="row-between">
-                <span class="badge badge-kraft"><span class="badge-dot"></span>Kraft</span>
-                <button class="btn btn-danger btn-sm" (click)="remove(u)">Löschen</button>
+                <div class="row uebung-badges">
+                  <span class="badge badge-kraft"><span class="badge-dot"></span>Kraft</span>
+                  @if (u.bibliothek) { <span class="badge badge-bibliothek">Bibliothek</span> }
+                </div>
+                <button class="btn btn-danger btn-sm" (click)="remove(u)">{{ u.bibliothek ? 'Entfernen' : 'Löschen' }}</button>
               </div>
               <h3>{{ u.name }}</h3>
               @if (u.beschreibung) { <p class="uebung-desc">{{ u.beschreibung }}</p> }
@@ -84,8 +120,11 @@
           @for (u of ausdauerUebungen(); track u.id) {
             <div class="card card-pad uebung-card">
               <div class="row-between">
-                <span class="badge badge-ausdauer"><span class="badge-dot"></span>Ausdauer</span>
-                <button class="btn btn-danger btn-sm" (click)="remove(u)">Löschen</button>
+                <div class="row uebung-badges">
+                  <span class="badge badge-ausdauer"><span class="badge-dot"></span>Ausdauer</span>
+                  @if (u.bibliothek) { <span class="badge badge-bibliothek">Bibliothek</span> }
+                </div>
+                <button class="btn btn-danger btn-sm" (click)="remove(u)">{{ u.bibliothek ? 'Entfernen' : 'Löschen' }}</button>
               </div>
               <h3>{{ u.name }}</h3>
               @if (u.beschreibung) { <p class="uebung-desc">{{ u.beschreibung }}</p> }

@@ -20,4 +20,12 @@ export class UebungService {
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
+
+  getBibliothek(): Observable<Uebung[]> {
+    return this.http.get<Uebung[]>(`${this.apiUrl}/bibliothek`);
+  }
+
+  addFromBibliothek(id: number): Observable<Uebung> {
+    return this.http.post<Uebung>(`${this.apiUrl}/bibliothek/${id}`, {});
+  }
 }

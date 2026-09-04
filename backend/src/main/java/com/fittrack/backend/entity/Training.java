@@ -28,8 +28,9 @@ public class Training {
 
     private Integer defaultPauseZwischenUebungenSekunden = 120;
 
+    /** null = Bibliotheks-Training (von der App bereitgestellt, fuer alle sichtbar). */
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     private User user;
 
     @OneToMany(mappedBy = "training", cascade = CascadeType.ALL, orphanRemoval = true)

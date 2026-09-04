@@ -15,3 +15,29 @@
 }
 
 .muted { color: var(--ink-soft); font-size: 0.9rem; }
+
+.uebung-badges { gap: 6px; }
+
+.bibliothek-panel h2 { margin: 0; }
+
+.bibliothek-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bibliothek-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.bibliothek-row:last-child { border-bottom: none; }
+
+.bibliothek-row-name {
+  margin-left: 8px;
+  font-weight: 600;
+}

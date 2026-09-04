@@ -36,6 +36,29 @@ public class TrainingController {
         );
     }
 
+    @Operation(summary = "Bibliotheks-Trainings abrufen, die der User noch nicht zu seinen hinzugefuegt hat")
+    @GetMapping("/bibliothek")
+    public ResponseEntity<List<TrainingResponse>> getBibliothek(@AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(
+                trainingService.getLibraryTrainings(userDetails.getUsername())
+                        .stream()
+                        .map(TrainingResponse::from)
+                        .collect(Collectors.toList())
+        );
+    }
+
+    @Operation(summary = "Bibliotheks-Training zu 'meinen' Trainings hinzufuegen (inkl. dessen Uebungen)")
+    @PostMapping("/bibliothek/{id}")
+    public ResponseEntity<TrainingResponse> addFromBibliothek(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(
+                TrainingResponse.from(
+                        trainingService.addTrainingFromLibrary(id, userDetails.getUsername())
+                )
+        );
+    }
+
     @Operation(summary = "Einen Trainingsplan inkl. seiner Uebungen abrufen")
     @GetMapping("/{id}")
     public ResponseEntity<TrainingResponse> getTraining(
@@ -71,7 +94,7 @@ public class TrainingController {
         );
     }
 
-    @Operation(summary = "Trainingsplan loeschen")
+    @Operation(summary = "Trainingsplan entfernen (eigenen loeschen oder Bibliotheks-Training aus 'meinen' entfernen)")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTraining(
             @PathVariable Long id,

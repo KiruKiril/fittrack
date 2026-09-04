@@ -47,7 +47,7 @@ public class UebungController {
         );
     }
 
-    @Operation(summary = "Uebung loeschen")
+    @Operation(summary = "Uebung entfernen (eigene loeschen oder Bibliotheks-Uebung aus 'meinen' entfernen)")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUebung(
             @PathVariable Long id,
@@ -56,4 +56,26 @@ public class UebungController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Bibliotheks-Uebungen abrufen, die der User noch nicht zu seinen hinzugefuegt hat")
+    @GetMapping("/bibliothek")
+    public ResponseEntity<List<UebungResponse>> getBibliothek(@AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(
+                uebungService.getLibraryUebungen(userDetails.getUsername())
+                        .stream()
+                        .map(UebungResponse::from)
+                        .collect(Collectors.toList())
+        );
+    }
+
+    @Operation(summary = "Bibliotheks-Uebung zu 'meinen' Uebungen hinzufuegen")
+    @PostMapping("/bibliothek/{id}")
+    public ResponseEntity<UebungResponse> addFromBibliothek(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(
+                UebungResponse.from(
+                        uebungService.addUebungFromLibrary(id, userDetails.getUsername())
+                )
+        );
+    }
 }

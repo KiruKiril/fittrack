@@ -17,6 +17,11 @@ export class TrainingsList {
   loading = signal(true);
   error = signal<string | null>(null);
 
+  bibliothek = signal<Training[]>([]);
+  bibliothekOpen = signal(false);
+  bibliothekLoading = signal(false);
+  addingId = signal<number | null>(null);
+
   constructor() {
     this.trainingService.getAll().subscribe({
       next: (data) => {
@@ -38,11 +43,54 @@ export class TrainingsList {
     event.preventDefault();
     event.stopPropagation();
     if (!training.id) return;
-    if (!confirm(`Trainingsplan "${training.name}" wirklich löschen?`)) return;
+    const frage = training.bibliothek
+      ? `Trainingsplan "${training.name}" aus deinen entfernen?`
+      : `Trainingsplan "${training.name}" wirklich löschen?`;
+    if (!confirm(frage)) return;
 
     this.trainingService.delete(training.id).subscribe({
       next: () => this.trainings.update((list) => list.filter((t) => t.id !== training.id)),
-      error: (err) => this.error.set(extractErrorMessage(err, 'Trainingsplan konnte nicht gelöscht werden.'))
+      error: (err) => this.error.set(extractErrorMessage(err, 'Trainingsplan konnte nicht entfernt werden.'))
+    });
+  }
+
+  toggleBibliothek(): void {
+    this.bibliothekOpen.update((v) => !v);
+    this.error.set(null);
+    if (this.bibliothekOpen()) {
+      this.loadBibliothek();
+    }
+  }
+
+  private loadBibliothek(): void {
+    this.bibliothekLoading.set(true);
+    this.trainingService.getBibliothek().subscribe({
+      next: (data) => {
+        this.bibliothek.set(data);
+        this.bibliothekLoading.set(false);
+      },
+      error: (err) => {
+        this.error.set(extractErrorMessage(err, 'Bibliothek konnte nicht geladen werden.'));
+        this.bibliothekLoading.set(false);
+      }
+    });
+  }
+
+  addFromBibliothek(training: Training, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!training.id) return;
+    this.addingId.set(training.id);
+    this.trainingService.addFromBibliothek(training.id).subscribe({
+      next: (added) => {
+        this.trainings.update((list) => [...list, added]);
+        this.bibliothek.update((list) => list.filter((t) => t.id !== training.id));
+        this.addingId.set(null);
+      },
+      error: (err) => {
+        this.error.set(extractErrorMessage(err, 'Trainingsplan konnte nicht hinzugefügt werden.'));
+        this.addingId.set(null);
+      }
     });
   }
 }

@@ -14,7 +14,9 @@ import com.fittrack.backend.entity.UebungTyp;
 import com.fittrack.backend.entity.User;
 import com.fittrack.backend.repository.TrainingAusfuehrungRepository;
 import com.fittrack.backend.repository.TrainingRepository;
+import com.fittrack.backend.repository.TrainingZuweisungRepository;
 import com.fittrack.backend.repository.UebungRepository;
+import com.fittrack.backend.repository.UebungZuweisungRepository;
 import com.fittrack.backend.repository.UserRepository;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -28,16 +30,22 @@ public class TrainingAusfuehrungService {
 
     private final TrainingAusfuehrungRepository trainingAusfuehrungRepository;
     private final TrainingRepository trainingRepository;
+    private final TrainingZuweisungRepository trainingZuweisungRepository;
     private final UebungRepository uebungRepository;
+    private final UebungZuweisungRepository uebungZuweisungRepository;
     private final UserRepository userRepository;
 
     public TrainingAusfuehrungService(TrainingAusfuehrungRepository trainingAusfuehrungRepository,
                                        TrainingRepository trainingRepository,
+                                       TrainingZuweisungRepository trainingZuweisungRepository,
                                        UebungRepository uebungRepository,
+                                       UebungZuweisungRepository uebungZuweisungRepository,
                                        UserRepository userRepository) {
         this.trainingAusfuehrungRepository = trainingAusfuehrungRepository;
         this.trainingRepository = trainingRepository;
+        this.trainingZuweisungRepository = trainingZuweisungRepository;
         this.uebungRepository = uebungRepository;
+        this.uebungZuweisungRepository = uebungZuweisungRepository;
         this.userRepository = userRepository;
     }
 
@@ -58,7 +66,7 @@ public class TrainingAusfuehrungService {
         Training training = trainingRepository.findById(request.getTrainingId())
                 .orElseThrow(() -> new RuntimeException("Training not found"));
 
-        if (!training.getUser().getId().equals(user.getId())) {
+        if (!isTrainingAccessible(training, user)) {
             throw new RuntimeException("Not authorized to use this training");
         }
 
@@ -105,7 +113,7 @@ public class TrainingAusfuehrungService {
             Uebung uebung = uebungRepository.findById(item.getUebungId())
                     .orElseThrow(() -> new RuntimeException("Uebung not found"));
 
-            if (!uebung.getUser().getId().equals(user.getId())) {
+            if (!isUebungAccessible(uebung, user)) {
                 throw new RuntimeException("Not authorized to use this uebung");
             }
 
@@ -167,6 +175,20 @@ public class TrainingAusfuehrungService {
         }
 
         return result;
+    }
+
+    private boolean isTrainingAccessible(Training training, User user) {
+        if (training.getUser() != null) {
+            return training.getUser().getId().equals(user.getId());
+        }
+        return trainingZuweisungRepository.existsByUserIdAndTrainingId(user.getId(), training.getId());
+    }
+
+    private boolean isUebungAccessible(Uebung uebung, User user) {
+        if (uebung.getUser() != null) {
+            return uebung.getUser().getId().equals(user.getId());
+        }
+        return uebungZuweisungRepository.existsByUserIdAndUebungId(user.getId(), uebung.getId());
     }
 
     private TrainingAusfuehrung findOwnedTrainingAusfuehrung(Long id, User user) {

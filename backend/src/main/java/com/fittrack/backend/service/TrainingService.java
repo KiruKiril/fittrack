@@ -4,10 +4,14 @@ import com.fittrack.backend.dto.TrainingRequest;
 import com.fittrack.backend.dto.TrainingUebungRequest;
 import com.fittrack.backend.entity.Training;
 import com.fittrack.backend.entity.TrainingUebung;
+import com.fittrack.backend.entity.TrainingZuweisung;
 import com.fittrack.backend.entity.Uebung;
+import com.fittrack.backend.entity.UebungZuweisung;
 import com.fittrack.backend.entity.User;
 import com.fittrack.backend.repository.TrainingRepository;
+import com.fittrack.backend.repository.TrainingZuweisungRepository;
 import com.fittrack.backend.repository.UebungRepository;
+import com.fittrack.backend.repository.UebungZuweisungRepository;
 import com.fittrack.backend.repository.UserRepository;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -15,28 +19,83 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TrainingService {
 
     private final TrainingRepository trainingRepository;
+    private final TrainingZuweisungRepository trainingZuweisungRepository;
     private final UebungRepository uebungRepository;
+    private final UebungZuweisungRepository uebungZuweisungRepository;
     private final UserRepository userRepository;
 
-    public TrainingService(TrainingRepository trainingRepository, UebungRepository uebungRepository, UserRepository userRepository) {
+    public TrainingService(TrainingRepository trainingRepository,
+                            TrainingZuweisungRepository trainingZuweisungRepository,
+                            UebungRepository uebungRepository,
+                            UebungZuweisungRepository uebungZuweisungRepository,
+                            UserRepository userRepository) {
         this.trainingRepository = trainingRepository;
+        this.trainingZuweisungRepository = trainingZuweisungRepository;
         this.uebungRepository = uebungRepository;
+        this.uebungZuweisungRepository = uebungZuweisungRepository;
         this.userRepository = userRepository;
     }
 
     public List<Training> getAllTrainings(String username) {
         User user = getUser(username);
-        return trainingRepository.findByUserId(user.getId());
+        List<Training> result = new ArrayList<>(trainingRepository.findByUserId(user.getId()));
+        result.addAll(getAssignedLibraryTrainings(user));
+        return result;
+    }
+
+    /** Bibliotheks-Trainings, die dieser User noch nicht zu seinen hinzugefuegt hat. */
+    public List<Training> getLibraryTrainings(String username) {
+        User user = getUser(username);
+        List<Long> assignedIds = trainingZuweisungRepository.findByUserId(user.getId()).stream()
+                .map(z -> z.getTraining().getId())
+                .collect(Collectors.toList());
+
+        return trainingRepository.findByUserIsNull().stream()
+                .filter(t -> !assignedIds.contains(t.getId()))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public Training addTrainingFromLibrary(Long trainingId, String username) {
+        User user = getUser(username);
+        Training training = trainingRepository.findById(trainingId)
+                .orElseThrow(() -> new RuntimeException("Training not found"));
+
+        if (training.getUser() != null) {
+            throw new RuntimeException("Dieses Training ist kein Bibliotheks-Training");
+        }
+
+        if (!trainingZuweisungRepository.existsByUserIdAndTrainingId(user.getId(), trainingId)) {
+            TrainingZuweisung zuweisung = new TrainingZuweisung();
+            zuweisung.setUser(user);
+            zuweisung.setTraining(training);
+            trainingZuweisungRepository.save(zuweisung);
+        }
+
+        // Die im Training verwendeten Bibliotheks-Uebungen muessen auch in "meine Uebungen" landen,
+        // sonst wuerde der Trainingsplan auf Uebungen zeigen, auf die der User keinen Zugriff hat.
+        for (TrainingUebung tu : training.getUebungen()) {
+            Uebung uebung = tu.getUebung();
+            if (uebung.getUser() == null && !uebungZuweisungRepository.existsByUserIdAndUebungId(user.getId(), uebung.getId())) {
+                UebungZuweisung uebungZuweisung = new UebungZuweisung();
+                uebungZuweisung.setUser(user);
+                uebungZuweisung.setUebung(uebung);
+                uebungZuweisungRepository.save(uebungZuweisung);
+            }
+        }
+
+        return training;
     }
 
     public Training getTraining(Long id, String username) {
         User user = getUser(username);
-        return findOwnedTraining(id, user);
+        return findAccessibleTraining(id, user);
     }
 
     @Transactional
@@ -74,9 +133,16 @@ public class TrainingService {
         return trainingRepository.save(training);
     }
 
+    @Transactional
     public void deleteTraining(Long id, String username) {
         User user = getUser(username);
-        Training training = findOwnedTraining(id, user);
+        Training training = findAccessibleTraining(id, user);
+
+        if (training.getUser() == null) {
+            trainingZuweisungRepository.deleteByUserIdAndTrainingId(user.getId(), id);
+            return;
+        }
+
         trainingRepository.delete(training);
     }
 
@@ -90,7 +156,7 @@ public class TrainingService {
             Uebung uebung = uebungRepository.findById(item.getUebungId())
                     .orElseThrow(() -> new RuntimeException("Uebung not found"));
 
-            if (!uebung.getUser().getId().equals(user.getId())) {
+            if (!isUebungAccessible(uebung, user)) {
                 throw new RuntimeException("Not authorized to use this uebung");
             }
 
@@ -108,15 +174,45 @@ public class TrainingService {
         return result;
     }
 
-    private Training findOwnedTraining(Long id, User user) {
+    private boolean isUebungAccessible(Uebung uebung, User user) {
+        if (uebung.getUser() != null) {
+            return uebung.getUser().getId().equals(user.getId());
+        }
+        return uebungZuweisungRepository.existsByUserIdAndUebungId(user.getId(), uebung.getId());
+    }
+
+    /** Erlaubt Zugriff auf eigene UND zu "meinen" hinzugefuegte Bibliotheks-Trainings. */
+    private Training findAccessibleTraining(Long id, User user) {
         Training training = trainingRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Training not found"));
 
-        if (!training.getUser().getId().equals(user.getId())) {
+        boolean owned = training.getUser() != null && training.getUser().getId().equals(user.getId());
+        boolean assigned = training.getUser() == null
+                && trainingZuweisungRepository.existsByUserIdAndTrainingId(user.getId(), id);
+
+        if (!owned && !assigned) {
             throw new RuntimeException("Not authorized to access this training");
         }
 
         return training;
+    }
+
+    /** Nur eigene Trainings duerfen bearbeitet werden - Bibliotheks-Trainings sind fuer alle gleich. */
+    private Training findOwnedTraining(Long id, User user) {
+        Training training = trainingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Training not found"));
+
+        if (training.getUser() == null || !training.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Not authorized to access this training");
+        }
+
+        return training;
+    }
+
+    private List<Training> getAssignedLibraryTrainings(User user) {
+        return trainingZuweisungRepository.findByUserId(user.getId()).stream()
+                .map(TrainingZuweisung::getTraining)
+                .collect(Collectors.toList());
     }
 
     private User getUser(String username) {

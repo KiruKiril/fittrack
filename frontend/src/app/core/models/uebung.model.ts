@@ -7,4 +7,5 @@ export interface Uebung {
   beschreibung?: string | null;
   empfWiederholungen?: number;
   createdAt?: string;
+  bibliothek?: boolean;
 }

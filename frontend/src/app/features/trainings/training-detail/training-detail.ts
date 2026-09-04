@@ -36,11 +36,14 @@ export class TrainingDetail {
   remove(): void {
     const t = this.training();
     if (!t?.id) return;
-    if (!confirm(`Trainingsplan "${t.name}" wirklich löschen?`)) return;
+    const frage = t.bibliothek
+      ? `Trainingsplan "${t.name}" aus deinen entfernen?`
+      : `Trainingsplan "${t.name}" wirklich löschen?`;
+    if (!confirm(frage)) return;
 
     this.trainingService.delete(t.id).subscribe({
       next: () => this.router.navigate(['/trainings']),
-      error: (err) => this.error.set(extractErrorMessage(err, 'Trainingsplan konnte nicht gelöscht werden.'))
+      error: (err) => this.error.set(extractErrorMessage(err, 'Trainingsplan konnte nicht entfernt werden.'))
     });
   }
 }

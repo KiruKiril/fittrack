@@ -9,4 +9,10 @@ import java.util.List;
 @Repository
 public interface UebungRepository extends JpaRepository<Uebung, Long> {
     List<Uebung> findByUserId(Long userId);
+
+    List<Uebung> findByUserIsNull();
+
+    List<Uebung> findByIdIn(List<Long> ids);
+
+    long countByUserIsNull();
 }

@@ -7,31 +7,25 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+/** Merkt sich, welchen Bibliotheks-Trainingsplan ein User zu "seinen" Trainings hinzugefuegt hat. */
 @Entity
-@Table(name ="uebungen")
+@Table(name = "training_zuweisungen", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "training_id"}))
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Uebung {
+public class TrainingZuweisung {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String name;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private UebungTyp typ;
-
-    private String beschreibung;
-    private int empfWiederholungen ;
-
-    /** null = Bibliotheks-Uebung (von der App bereitgestellt, fuer alle sichtbar). */
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "training_id", nullable = false)
+    private Training training;
 
     @Column(updatable = false)
     private LocalDateTime createdAt;

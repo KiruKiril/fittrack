@@ -28,4 +28,12 @@ export class TrainingService {
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
+
+  getBibliothek(): Observable<Training[]> {
+    return this.http.get<Training[]>(`${this.apiUrl}/bibliothek`);
+  }
+
+  addFromBibliothek(id: number): Observable<Training> {
+    return this.http.post<Training>(`${this.apiUrl}/bibliothek/${id}`, {});
+  }
 }

@@ -8,7 +8,10 @@
   } @else if (training(); as t) {
     <div class="page-header">
       <div>
-        <h1>{{ t.name }}</h1>
+        <div class="row">
+          <h1>{{ t.name }}</h1>
+          @if (t.bibliothek) { <span class="badge badge-bibliothek">Bibliothek</span> }
+        </div>
         @if (t.beschreibung) { <p>{{ t.beschreibung }}</p> }
         <p class="pause-summary tabular">
           Pausen: {{ t.defaultPauseZwischenSaetzenSekunden }}s zw. Sätzen · {{ t.defaultPauseZwischenUebungenSekunden }}s zw. Übungen
@@ -17,7 +20,7 @@
       <div class="page-actions">
         <a class="btn btn-primary" [routerLink]="['/trainings', t.id, 'live']">▶ Trainieren</a>
         <a class="btn btn-secondary" [routerLink]="['/log/neu', t.id]">Manuell eintragen</a>
-        <button class="btn btn-danger" (click)="remove()">Löschen</button>
+        <button class="btn btn-danger" (click)="remove()">{{ t.bibliothek ? 'Entfernen' : 'Löschen' }}</button>
       </div>
     </div>
 

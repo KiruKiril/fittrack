@@ -17,6 +17,8 @@ public class TrainingResponse {
     private int defaultPauseZwischenUebungenSekunden;
     private LocalDateTime createdAt;
     private List<TrainingUebungResponse> uebungen;
+    /** true = Bibliotheks-Training, von der App bereitgestellt und nicht vom eingeloggten User erstellt. */
+    private boolean bibliothek;
 
     public static TrainingResponse from(Training training) {
         TrainingResponse dto = new TrainingResponse();
@@ -28,6 +30,7 @@ public class TrainingResponse {
         dto.setDefaultPauseZwischenUebungenSekunden(
                 training.getDefaultPauseZwischenUebungenSekunden() != null ? training.getDefaultPauseZwischenUebungenSekunden() : 120);
         dto.setCreatedAt(training.getCreatedAt());
+        dto.setBibliothek(training.getUser() == null);
         dto.setUebungen(
                 training.getUebungen() == null
                         ? Collections.emptyList()
