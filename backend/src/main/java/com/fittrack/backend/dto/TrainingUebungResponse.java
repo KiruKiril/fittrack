@@ -11,6 +11,8 @@ public class TrainingUebungResponse {
     private int empfSaetze;
     private Double empfDistanzMeter;
     private Integer empfDauerSekunden;
+    private Integer pauseZwischenSaetzenSekunden;
+    private Integer pauseNachUebungSekunden;
 
     public static TrainingUebungResponse from(TrainingUebung trainingUebung) {
         TrainingUebungResponse dto = new TrainingUebungResponse();
@@ -20,6 +22,8 @@ public class TrainingUebungResponse {
         dto.setEmpfSaetze(trainingUebung.getEmpfSaetze());
         dto.setEmpfDistanzMeter(trainingUebung.getEmpfDistanzMeter());
         dto.setEmpfDauerSekunden(trainingUebung.getEmpfDauerSekunden());
+        dto.setPauseZwischenSaetzenSekunden(trainingUebung.getPauseZwischenSaetzenSekunden());
+        dto.setPauseNachUebungSekunden(trainingUebung.getPauseNachUebungSekunden());
         return dto;
     }
 }

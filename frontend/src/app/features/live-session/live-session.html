@@ -1,0 +1,146 @@
+<div class="live">
+  @if (error()) {
+    <div class="live-error form-error">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <p class="muted">Lädt…</p>
+  } @else if (training(); as t) {
+
+    @if (phase() !== 'intro' && phase() !== 'done') {
+      <div class="progress-bar">
+        <div class="progress-bar-fill" [style.width.%]="(stepIndex() / steps.length) * 100"></div>
+      </div>
+    }
+
+    <!-- INTRO -->
+    @if (phase() === 'intro') {
+      <div class="intro">
+        <a class="link-btn back-link" [routerLink]="['/trainings', t.id]">← Zurück</a>
+        <h1>{{ t.name }}</h1>
+        <p class="intro-sub">{{ steps.length }} Schritte · Pausen {{ t.defaultPauseZwischenSaetzenSekunden }}s / {{ t.defaultPauseZwischenUebungenSekunden }}s</p>
+
+        <div class="card card-pad">
+          @for (u of t.uebungen; track u.id) {
+            <div class="intro-row">
+              <span>{{ u.uebungName }}</span>
+              <span class="tabular intro-row-meta">
+                @if (u.empfSaetze) { {{ u.empfSaetze }} Sätze }
+                @if (u.empfDistanzMeter) { {{ u.empfDistanzMeter! / 1000 }} km }
+              </span>
+            </div>
+          }
+        </div>
+
+        <div class="field">
+          <label for="ort">Ort</label>
+          <input id="ort" type="text" [(ngModel)]="ort" name="ort" placeholder="z.B. Fitnessstudio" />
+        </div>
+
+        <button class="btn btn-primary btn-block btn-lg" (click)="start()">▶ Los geht's</button>
+      </div>
+    }
+
+    <!-- PERFORMING -->
+    @if (phase() === 'performing' && currentStep(); as step) {
+      <div class="performing">
+        <div class="row-between">
+          <span class="progress-label">{{ progressLabel() }}</span>
+          <button class="link-btn" (click)="cancel()">Abbrechen</button>
+        </div>
+
+        <div class="exercise-head">
+          <h1>{{ step.uebungName }}</h1>
+          <span class="badge" [class.badge-kraft]="step.typ === 'KRAFT'" [class.badge-ausdauer]="step.typ === 'AUSDAUER'">
+            {{ step.typ === 'KRAFT' ? 'Kraft' : 'Ausdauer' }}
+          </span>
+        </div>
+        @if (step.zielLabel) { <p class="ziel-label">{{ step.zielLabel }}</p> }
+
+        @if (step.kind === 'satz') {
+          <div class="input-card card card-pad">
+            <div class="field-row">
+              <div class="field">
+                <label>Wiederholungen</label>
+                <input type="number" min="0" [(ngModel)]="inputReps" name="reps" inputmode="numeric" autofocus />
+              </div>
+              <div class="field">
+                <label>Gewicht (kg)</label>
+                <input type="number" min="0" step="0.5" [(ngModel)]="inputGewicht" name="gewicht" inputmode="decimal" />
+              </div>
+            </div>
+            <label class="dropset-check">
+              <input type="checkbox" [(ngModel)]="inputDropset" name="dropset" />
+              Dropset
+            </label>
+          </div>
+        } @else {
+          <div class="input-card card card-pad">
+            <div class="field-row">
+              <div class="field">
+                <label>Distanz (km)</label>
+                <input type="number" min="0" step="0.1" [(ngModel)]="inputDistanzKm" name="distanz" inputmode="decimal" />
+              </div>
+              <div class="field">
+                <label>Dauer (min)</label>
+                <input type="number" min="0" [(ngModel)]="inputDauerMinuten" name="dauer" inputmode="numeric" />
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label>Ø Puls</label>
+                <input type="number" min="0" [(ngModel)]="inputHfAvg" name="hfavg" inputmode="numeric" />
+              </div>
+              <div class="field">
+                <label>Max. Puls</label>
+                <input type="number" min="0" [(ngModel)]="inputHfMax" name="hfmax" inputmode="numeric" />
+              </div>
+              <div class="field">
+                <label>Höhenmeter</label>
+                <input type="number" min="0" [(ngModel)]="inputHoehenmeter" name="hoehe" inputmode="numeric" />
+              </div>
+            </div>
+          </div>
+        }
+
+        <button class="btn btn-primary btn-block btn-lg" (click)="finishCurrentStep()">✓ Fertig</button>
+      </div>
+    }
+
+    <!-- RESTING -->
+    @if (phase() === 'resting') {
+      <div class="resting">
+        <span class="resting-label">Pause</span>
+        <div class="timer tabular">{{ formatTime(timeLeft()) }}</div>
+
+        @if (nextStep(); as next) {
+          <div class="next-preview">
+            <span class="next-preview-label">Als Nächstes</span>
+            <span class="next-preview-name">{{ next.uebungName }}</span>
+            <span class="next-preview-meta">
+              {{ next.kind === 'satz' ? 'Satz ' + next.setIndex + '/' + next.setCount : 'Ausdauer' }}
+            </span>
+          </div>
+        }
+
+        <button class="btn btn-secondary btn-block" (click)="skipRest()">Überspringen →</button>
+      </div>
+    }
+
+    <!-- DONE -->
+    @if (phase() === 'done') {
+      <div class="done">
+        <div class="done-emoji">🎉</div>
+        <h1>Training abgeschlossen!</h1>
+        <p class="muted">{{ t.name }} · {{ steps.length }} Schritte erledigt</p>
+
+        @if (saving()) {
+          <p class="muted">Speichert…</p>
+        } @else if (createdLogId()) {
+          <a class="btn btn-primary btn-block" [routerLink]="['/log', createdLogId()]">Zusammenfassung ansehen</a>
+        }
+        <a class="btn btn-secondary btn-block" routerLink="/trainings">Zu den Trainingsplänen</a>
+      </div>
+    }
+  }
+</div>

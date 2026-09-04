@@ -12,6 +12,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/register/register').then((m) => m.Register)
   },
   {
+    path: 'trainings/:id/live',
+    loadComponent: () => import('./features/live-session/live-session').then((m) => m.LiveSession),
+    canActivate: [authGuard]
+  },
+  {
     path: '',
     loadComponent: () => import('./layout/shell').then((m) => m.Shell),
     canActivate: [authGuard],

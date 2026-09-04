@@ -12,6 +12,9 @@ interface PlanRow {
   empfSaetze: number;
   empfDistanzKm: number | null;
   empfDauerMinuten: number | null;
+  pauseEditOpen: boolean;
+  pauseSaetzeOverride: number | null;
+  pauseNachUebungOverride: number | null;
 }
 
 @Component({
@@ -27,6 +30,8 @@ export class TrainingForm {
 
   name = '';
   beschreibung = '';
+  pauseSaetze = 90;
+  pauseUebungen = 120;
   rows: PlanRow[] = [this.emptyRow()];
 
   uebungen = signal<Uebung[]>([]);
@@ -48,7 +53,15 @@ export class TrainingForm {
   }
 
   private emptyRow(): PlanRow {
-    return { uebungId: null, empfSaetze: 3, empfDistanzKm: null, empfDauerMinuten: null };
+    return {
+      uebungId: null,
+      empfSaetze: 3,
+      empfDistanzKm: null,
+      empfDauerMinuten: null,
+      pauseEditOpen: false,
+      pauseSaetzeOverride: null,
+      pauseNachUebungOverride: null
+    };
   }
 
   typOf(uebungId: number | null): 'KRAFT' | 'AUSDAUER' | null {
@@ -62,6 +75,10 @@ export class TrainingForm {
 
   removeRow(index: number): void {
     this.rows = this.rows.filter((_, i) => i !== index);
+  }
+
+  togglePauseEdit(row: PlanRow): void {
+    row.pauseEditOpen = !row.pauseEditOpen;
   }
 
   submit(): void {
@@ -84,12 +101,20 @@ export class TrainingForm {
         uebungId: r.uebungId as number,
         empfSaetze: typ === 'KRAFT' ? (r.empfSaetze || 0) : 0,
         empfDistanzMeter: typ === 'AUSDAUER' && r.empfDistanzKm ? r.empfDistanzKm * 1000 : null,
-        empfDauerSekunden: typ === 'AUSDAUER' && r.empfDauerMinuten ? Math.round(r.empfDauerMinuten * 60) : null
+        empfDauerSekunden: typ === 'AUSDAUER' && r.empfDauerMinuten ? Math.round(r.empfDauerMinuten * 60) : null,
+        pauseZwischenSaetzenSekunden: typ === 'KRAFT' ? r.pauseSaetzeOverride : null,
+        pauseNachUebungSekunden: r.pauseNachUebungOverride
       };
     });
 
     this.saving.set(true);
-    this.trainingService.create({ name: this.name, beschreibung: this.beschreibung || undefined, uebungen }).subscribe({
+    this.trainingService.create({
+      name: this.name,
+      beschreibung: this.beschreibung || undefined,
+      defaultPauseZwischenSaetzenSekunden: this.pauseSaetze,
+      defaultPauseZwischenUebungenSekunden: this.pauseUebungen,
+      uebungen
+    }).subscribe({
       next: (created) => this.router.navigate(['/trainings', created.id]),
       error: (err) => {
         this.saving.set(false);

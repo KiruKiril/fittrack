@@ -30,4 +30,10 @@ public class TrainingUebung {
 
     private Integer empfDauerSekunden;
 
+    /** Ueberschreibt Training.defaultPauseZwischenSaetzenSekunden nur fuer diese Uebung, wenn gesetzt. */
+    private Integer pauseZwischenSaetzenSekunden;
+
+    /** Pause NACH dieser Uebung, bevor die naechste beginnt. Ueberschreibt Training.defaultPauseZwischenUebungenSekunden, wenn gesetzt. */
+    private Integer pauseNachUebungSekunden;
+
 }

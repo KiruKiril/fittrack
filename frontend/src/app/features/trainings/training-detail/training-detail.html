@@ -10,10 +10,14 @@
       <div>
         <h1>{{ t.name }}</h1>
         @if (t.beschreibung) { <p>{{ t.beschreibung }}</p> }
+        <p class="pause-summary tabular">
+          Pausen: {{ t.defaultPauseZwischenSaetzenSekunden }}s zw. Sätzen · {{ t.defaultPauseZwischenUebungenSekunden }}s zw. Übungen
+        </p>
       </div>
       <div class="row">
         <button class="btn btn-danger" (click)="remove()">Löschen</button>
-        <a class="btn btn-primary" [routerLink]="['/log/neu', t.id]">Training loggen</a>
+        <a class="btn btn-secondary" [routerLink]="['/log/neu', t.id]">Manuell eintragen</a>
+        <a class="btn btn-primary" [routerLink]="['/trainings', t.id, 'live']">▶ Trainieren</a>
       </div>
     </div>
 
@@ -25,6 +29,13 @@
             @if (u.empfSaetze) { {{ u.empfSaetze }} Sätze }
             @if (u.empfDistanzMeter) { {{ u.empfDistanzMeter / 1000 }} km }
             @if (u.empfDauerSekunden) { · {{ u.empfDauerSekunden / 60 }} min }
+            @if (u.pauseZwischenSaetzenSekunden || u.pauseNachUebungSekunden) {
+              <span class="uebung-row-pause">
+                ⏱
+                @if (u.pauseZwischenSaetzenSekunden) { {{ u.pauseZwischenSaetzenSekunden }}s }
+                @if (u.pauseNachUebungSekunden) { → {{ u.pauseNachUebungSekunden }}s }
+              </span>
+            }
           </span>
         </div>
       }

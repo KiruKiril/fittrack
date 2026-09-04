@@ -12,4 +12,15 @@
 .uebung-row-name { font-weight: 600; }
 .uebung-row-ziel { color: var(--ink-soft); font-size: 0.85rem; }
 
+.uebung-row-pause {
+  margin-left: 10px;
+  color: var(--ink-faint);
+}
+
+.pause-summary {
+  color: var(--ink-faint);
+  font-size: 0.8rem;
+  margin-top: 6px;
+}
+
 .muted { color: var(--ink-soft); font-size: 0.9rem; }

@@ -8,4 +8,6 @@ public class TrainingUebungRequest {
     private int empfSaetze;
     private Double empfDistanzMeter;
     private Integer empfDauerSekunden;
+    private Integer pauseZwischenSaetzenSekunden;
+    private Integer pauseNachUebungSekunden;
 }

@@ -24,6 +24,10 @@ public class Training {
 
     private String beschreibung;
 
+    private Integer defaultPauseZwischenSaetzenSekunden = 90;
+
+    private Integer defaultPauseZwischenUebungenSekunden = 120;
+
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

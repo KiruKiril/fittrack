@@ -33,6 +33,23 @@
         </div>
       </div>
 
+      <div class="card card-pad stack">
+        <div>
+          <h3>Pausen (allgemein)</h3>
+          <p class="pause-hint">Gilt für alle Übungen im Plan — kann pro Übung einzeln überschrieben werden.</p>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="pauseSaetze">Zwischen Sätzen (Sek.)</label>
+            <input id="pauseSaetze" type="number" min="0" step="5" [(ngModel)]="pauseSaetze" name="pauseSaetze" />
+          </div>
+          <div class="field">
+            <label for="pauseUebungen">Zwischen Übungen (Sek.)</label>
+            <input id="pauseUebungen" type="number" min="0" step="5" [(ngModel)]="pauseUebungen" name="pauseUebungen" />
+          </div>
+        </div>
+      </div>
+
       <div class="stack">
         <h2>Übungen im Plan</h2>
 
@@ -67,6 +84,27 @@
                 </div>
               }
             </div>
+
+            @if (row.uebungId !== null) {
+              <button type="button" class="link-btn pause-edit-toggle" (click)="togglePauseEdit(row)">
+                {{ row.pauseEditOpen ? 'Pausen schließen' : 'Pausen bearbeiten' }}
+              </button>
+            }
+
+            @if (row.pauseEditOpen) {
+              <div class="pause-edit field-row">
+                @if (typOf(row.uebungId) === 'KRAFT') {
+                  <div class="field">
+                    <label>Pause zw. Sätzen (Sek.)</label>
+                    <input type="number" min="0" step="5" [(ngModel)]="row.pauseSaetzeOverride" [name]="'pauseSatz-' + $index" [placeholder]="pauseSaetze + ' (Standard)'" />
+                  </div>
+                }
+                <div class="field">
+                  <label>Pause nach dieser Übung (Sek.)</label>
+                  <input type="number" min="0" step="5" [(ngModel)]="row.pauseNachUebungOverride" [name]="'pauseUebung-' + $index" [placeholder]="pauseUebungen + ' (Standard)'" />
+                </div>
+              </div>
+            }
 
             @if (rows.length > 1) {
               <button type="button" class="btn btn-danger btn-sm plan-row-remove" (click)="removeRow($index)">Entfernen</button>

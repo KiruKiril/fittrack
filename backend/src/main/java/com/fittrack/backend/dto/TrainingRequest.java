@@ -8,5 +8,7 @@ import java.util.List;
 public class TrainingRequest {
     private String name;
     private String beschreibung;
+    private Integer defaultPauseZwischenSaetzenSekunden;
+    private Integer defaultPauseZwischenUebungenSekunden;
     private List<TrainingUebungRequest> uebungen;
 }

@@ -13,6 +13,8 @@ public class TrainingResponse {
     private Long id;
     private String name;
     private String beschreibung;
+    private int defaultPauseZwischenSaetzenSekunden;
+    private int defaultPauseZwischenUebungenSekunden;
     private LocalDateTime createdAt;
     private List<TrainingUebungResponse> uebungen;
 
@@ -21,6 +23,8 @@ public class TrainingResponse {
         dto.setId(training.getId());
         dto.setName(training.getName());
         dto.setBeschreibung(training.getBeschreibung());
+        dto.setDefaultPauseZwischenSaetzenSekunden(training.getDefaultPauseZwischenSaetzenSekunden());
+        dto.setDefaultPauseZwischenUebungenSekunden(training.getDefaultPauseZwischenUebungenSekunden());
         dto.setCreatedAt(training.getCreatedAt());
         dto.setUebungen(
                 training.getUebungen() == null

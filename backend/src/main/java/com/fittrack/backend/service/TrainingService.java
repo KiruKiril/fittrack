@@ -46,6 +46,10 @@ public class TrainingService {
         Training training = new Training();
         training.setName(request.getName());
         training.setBeschreibung(request.getBeschreibung());
+        training.setDefaultPauseZwischenSaetzenSekunden(
+                request.getDefaultPauseZwischenSaetzenSekunden() != null ? request.getDefaultPauseZwischenSaetzenSekunden() : 90);
+        training.setDefaultPauseZwischenUebungenSekunden(
+                request.getDefaultPauseZwischenUebungenSekunden() != null ? request.getDefaultPauseZwischenUebungenSekunden() : 120);
         training.setUser(user);
         training.setUebungen(buildTrainingUebungen(training, request.getUebungen(), user));
 
@@ -59,6 +63,10 @@ public class TrainingService {
 
         training.setName(request.getName());
         training.setBeschreibung(request.getBeschreibung());
+        training.setDefaultPauseZwischenSaetzenSekunden(
+                request.getDefaultPauseZwischenSaetzenSekunden() != null ? request.getDefaultPauseZwischenSaetzenSekunden() : 90);
+        training.setDefaultPauseZwischenUebungenSekunden(
+                request.getDefaultPauseZwischenUebungenSekunden() != null ? request.getDefaultPauseZwischenUebungenSekunden() : 120);
 
         training.getUebungen().clear();
         training.getUebungen().addAll(buildTrainingUebungen(training, request.getUebungen(), user));
@@ -92,6 +100,8 @@ public class TrainingService {
             trainingUebung.setEmpfSaetze(item.getEmpfSaetze());
             trainingUebung.setEmpfDistanzMeter(item.getEmpfDistanzMeter());
             trainingUebung.setEmpfDauerSekunden(item.getEmpfDauerSekunden());
+            trainingUebung.setPauseZwischenSaetzenSekunden(item.getPauseZwischenSaetzenSekunden());
+            trainingUebung.setPauseNachUebungSekunden(item.getPauseNachUebungSekunden());
             result.add(trainingUebung);
         }
 
