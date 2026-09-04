@@ -32,9 +32,9 @@ export class LogHistory {
   }
 
   typLabel(log: TrainingAusfuehrung): 'Kraft' | 'Ausdauer' | 'Kraft + Ausdauer' {
-    const hatAusdauer = log.uebungSessions.some((s) => s.ausdauerEinheiten.length > 0);
-    const hatKraft = log.uebungSessions.some((s) => s.saetze.length > 0);
-    if (hatAusdauer && hatKraft) return 'Kraft + Ausdauer';
+    const hatKraft = log.uebungSessions.some((s) => s.uebungTyp === 'KRAFT');
+    const hatAusdauer = log.uebungSessions.some((s) => s.uebungTyp === 'AUSDAUER');
+    if (hatKraft && hatAusdauer) return 'Kraft + Ausdauer';
     return hatAusdauer ? 'Ausdauer' : 'Kraft';
   }
 }

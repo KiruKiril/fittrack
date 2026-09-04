@@ -1,5 +1,12 @@
 .muted { color: var(--ink-soft); font-size: 0.9rem; }
 
+.session-empty {
+  color: var(--ink-faint);
+  font-size: 0.85rem;
+  font-style: italic;
+  margin-top: 8px;
+}
+
 .satz-list {
   display: flex;
   flex-wrap: wrap;

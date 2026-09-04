@@ -45,10 +45,9 @@ export class Dashboard {
   }
 
   sessionTypLabel(log: TrainingAusfuehrung): string {
-    const hatAusdauer = log.uebungSessions.some((s) => s.ausdauerEinheiten.length > 0);
-    const hatKraft = log.uebungSessions.some((s) => s.saetze.length > 0);
-    if (hatAusdauer && hatKraft) return 'Kraft + Ausdauer';
-    if (hatAusdauer) return 'Ausdauer';
-    return 'Kraft';
+    const hatKraft = log.uebungSessions.some((s) => s.uebungTyp === 'KRAFT');
+    const hatAusdauer = log.uebungSessions.some((s) => s.uebungTyp === 'AUSDAUER');
+    if (hatKraft && hatAusdauer) return 'Kraft + Ausdauer';
+    return hatAusdauer ? 'Ausdauer' : 'Kraft';
   }
 }

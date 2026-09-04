@@ -19,6 +19,7 @@ export interface UebungSession {
   id?: number;
   uebungId: number;
   uebungName?: string;
+  uebungTyp?: 'KRAFT' | 'AUSDAUER';
   saetze: Satz[];
   ausdauerEinheiten: AusdauerEinheit[];
 }

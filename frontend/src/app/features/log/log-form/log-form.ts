@@ -132,15 +132,13 @@ export class LogForm {
     const training = this.training();
     if (!training?.id) return;
 
-    const payload: TrainingAusfuehrung = {
-      trainingId: training.id,
-      ort: this.ort || null,
-      uebungSessions: this.sessions().map((s) => ({
+    const uebungSessions = this.sessions()
+      .map((s) => ({
         uebungId: s.uebungId,
         saetze: s.typ === 'KRAFT'
           ? s.saetze
-              .filter((r) => r.wiederholungen !== null && r.gewicht !== null)
-              .map((r) => ({ wiederholungen: r.wiederholungen as number, gewicht: r.gewicht as number, dropset: r.dropset }))
+              .filter((r) => r.wiederholungen !== null)
+              .map((r) => ({ wiederholungen: r.wiederholungen as number, gewicht: r.gewicht ?? 0, dropset: r.dropset }))
           : [],
         ausdauerEinheiten: s.typ === 'AUSDAUER'
           ? s.ausdauerEinheiten
@@ -155,12 +153,20 @@ export class LogForm {
               }))
           : []
       }))
-    };
+      // Übungen, zu denen nichts eingetragen wurde, gar nicht erst mitschicken —
+      // sonst landen leere "Geister-Sessions" ohne Daten in der Datenbank.
+      .filter((s) => s.saetze.length > 0 || s.ausdauerEinheiten.length > 0);
 
-    if (payload.uebungSessions.every((s) => s.saetze.length === 0 && s.ausdauerEinheiten.length === 0)) {
+    if (uebungSessions.length === 0) {
       this.error.set('Bitte trag mindestens einen Satz oder eine Ausdauer-Einheit ein.');
       return;
     }
+
+    const payload: TrainingAusfuehrung = {
+      trainingId: training.id,
+      ort: this.ort || null,
+      uebungSessions
+    };
 
     this.saving.set(true);
     this.logService.create(payload).subscribe({

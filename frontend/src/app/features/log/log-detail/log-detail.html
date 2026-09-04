@@ -22,10 +22,14 @@
         <div class="card card-pad">
           <div class="row-between">
             <h3>{{ session.uebungName }}</h3>
-            <span class="badge" [class.badge-kraft]="session.saetze.length > 0" [class.badge-ausdauer]="session.ausdauerEinheiten.length > 0">
-              {{ session.saetze.length > 0 ? 'Kraft' : 'Ausdauer' }}
+            <span class="badge" [class.badge-kraft]="session.uebungTyp === 'KRAFT'" [class.badge-ausdauer]="session.uebungTyp === 'AUSDAUER'">
+              {{ session.uebungTyp === 'KRAFT' ? 'Kraft' : 'Ausdauer' }}
             </span>
           </div>
+
+          @if (session.saetze.length === 0 && session.ausdauerEinheiten.length === 0) {
+            <p class="session-empty">Keine Daten erfasst.</p>
+          }
 
           @if (session.saetze.length > 0) {
             <div class="satz-list">
