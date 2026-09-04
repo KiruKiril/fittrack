@@ -20,6 +20,16 @@
     </div>
   </header>
 
+  @if (liveSessionTracker.active(); as session) {
+    <a class="live-banner" [routerLink]="['/trainings', session.trainingId, 'live']">
+      <span class="live-banner-dot"></span>
+      <span class="live-banner-text">
+        <strong>{{ session.trainingName }}</strong> läuft noch
+      </span>
+      <span class="live-banner-cta">Zurück zum Training →</span>
+    </a>
+  }
+
   <main class="content">
     <router-outlet />
   </main>

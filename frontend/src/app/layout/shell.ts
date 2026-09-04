@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../core/services/auth.service';
+import { LiveSessionTracker } from '../core/services/live-session-tracker';
 
 @Component({
   selector: 'app-shell',
@@ -11,6 +12,7 @@ import { AuthService } from '../core/services/auth.service';
 export class Shell {
   private auth = inject(AuthService);
   private router = inject(Router);
+  liveSessionTracker = inject(LiveSessionTracker);
 
   username = this.auth.getUsername();
 

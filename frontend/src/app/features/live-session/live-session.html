@@ -45,7 +45,10 @@
     @if (phase() === 'performing' && currentStep(); as step) {
       <div class="performing">
         <div class="row-between">
-          <span class="progress-label">{{ progressLabel() }}</span>
+          <div class="row">
+            <button class="link-btn" (click)="leave()">← Verlassen</button>
+            <span class="progress-label">{{ progressLabel() }}</span>
+          </div>
           <button class="link-btn" (click)="cancel()">Abbrechen</button>
         </div>
 
@@ -110,6 +113,7 @@
     <!-- RESTING -->
     @if (phase() === 'resting') {
       <div class="resting">
+        <button class="link-btn resting-leave" (click)="leave()">← Verlassen</button>
         <span class="resting-label">Pause</span>
         <div class="timer tabular">{{ formatTime(timeLeft()) }}</div>
 

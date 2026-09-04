@@ -9,6 +9,7 @@ import { Training } from '../../core/models/training.model';
 import { UebungTyp } from '../../core/models/uebung.model';
 import { TrainingAusfuehrung } from '../../core/models/log.model';
 import { extractErrorMessage } from '../../core/error-message';
+import { LiveSessionTracker } from '../../core/services/live-session-tracker';
 
 type Phase = 'intro' | 'performing' | 'resting' | 'done';
 
@@ -51,6 +52,7 @@ interface PersistedState {
   restEndsAt: number | null;
   results: (StepResult | null)[];
   ort: string;
+  trainingName: string;
 }
 
 @Component({
@@ -65,6 +67,7 @@ export class LiveSession implements OnDestroy {
   private logService = inject(LogService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private liveSessionTracker = inject(LiveSessionTracker);
 
   private trainingId = Number(this.route.snapshot.paramMap.get('id'));
   private storageKey = `fittrack-live-${this.trainingId}`;
@@ -197,6 +200,7 @@ export class LiveSession implements OnDestroy {
 
   start(): void {
     this.phase.set('performing');
+    this.liveSessionTracker.start(this.trainingId, this.training()?.name ?? '');
     this.persist();
   }
 
@@ -281,6 +285,7 @@ export class LiveSession implements OnDestroy {
   private finishSession(): void {
     if (this.timerHandle) clearInterval(this.timerHandle);
     this.phase.set('done');
+    this.liveSessionTracker.clear();
     this.clearPersisted();
     this.submitLog();
   }
@@ -342,8 +347,15 @@ export class LiveSession implements OnDestroy {
   cancel(): void {
     if (!confirm('Training wirklich abbrechen? Bisherige Eingaben in dieser Session gehen verloren.')) return;
     if (this.timerHandle) clearInterval(this.timerHandle);
+    this.liveSessionTracker.clear();
     this.clearPersisted();
     this.router.navigate(['/trainings', this.trainingId]);
+  }
+
+  /** Live-Ansicht verlassen, ohne das Training zu beenden - der Fortschritt bleibt
+   *  erhalten und die Shell zeigt eine Leiste, um spaeter genau hierher zurueckzukehren. */
+  leave(): void {
+    this.router.navigate(['/dashboard']);
   }
 
   private beep(): void {
@@ -371,7 +383,8 @@ export class LiveSession implements OnDestroy {
         phase: this.phase(),
         restEndsAt: this.restEndsAt,
         results: this.results,
-        ort: this.ort
+        ort: this.ort,
+        trainingName: this.training()?.name ?? ''
       };
       localStorage.setItem(this.storageKey, JSON.stringify(state));
     } catch {
@@ -410,6 +423,10 @@ export class LiveSession implements OnDestroy {
         this.tick();
       } else if (state.phase === 'performing' || state.phase === 'resting') {
         this.phase.set('performing');
+      }
+
+      if (this.phase() === 'performing' || this.phase() === 'resting') {
+        this.liveSessionTracker.start(this.trainingId, this.training()?.name ?? state.trainingName ?? '');
       }
     } catch {
       this.clearPersisted();

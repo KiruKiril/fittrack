@@ -90,6 +90,54 @@
   flex: 1;
 }
 
+.live-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 10px 24px;
+  background: var(--teal-bg);
+  color: var(--teal-ink);
+  text-decoration: none;
+  font-size: 0.87rem;
+  position: sticky;
+  top: 60px;
+  z-index: 9;
+  border-bottom: 1px solid var(--teal);
+}
+
+.live-banner-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--teal);
+  flex-shrink: 0;
+  animation: live-banner-pulse 1.8s ease-in-out infinite;
+}
+
+.live-banner-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.live-banner-cta {
+  flex-shrink: 0;
+  font-weight: 700;
+}
+
+@keyframes live-banner-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-banner-dot { animation: none; }
+}
+
 /* Bottom tab bar: hidden on desktop, shown only on narrow/touch viewports */
 .tabbar {
   display: none;
