@@ -48,6 +48,21 @@
   stroke-width: 2.5;
 }
 
+.dial-laps {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 20px;
+  line-height: 1.3;
+  pointer-events: none;
+}
+
 .dial-center {
   position: absolute;
   inset: 0;

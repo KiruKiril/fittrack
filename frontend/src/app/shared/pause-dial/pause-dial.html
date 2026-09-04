@@ -20,6 +20,10 @@
       <circle class="dial-handle" [attr.cx]="handleX" [attr.cy]="handleY" r="8" />
     </svg>
 
+    @if (laps > 0) {
+      <span class="dial-laps">×{{ laps + 1 }}</span>
+    }
+
     <div class="dial-center">
       <input
         class="dial-input tabular"
