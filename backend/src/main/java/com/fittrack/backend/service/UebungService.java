@@ -2,7 +2,7 @@ package com.fittrack.backend.service;
 
 import com.fittrack.backend.dto.UebungRequest;
 import com.fittrack.backend.entity.Uebung;
-import com.fittrack.backend.entity.Workout;
+import com.fittrack.backend.entity.UebungTyp;
 import com.fittrack.backend.repository.UebungRepository;
 import com.fittrack.backend.repository.UserRepository;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -33,6 +33,7 @@ public class UebungService {
 
         Uebung uebung = new Uebung();
         uebung.setName(request.getName());
+        uebung.setTyp(request.getTyp() == null ? UebungTyp.KRAFT : request.getTyp());
         uebung.setBeschreibung(request.getBeschreibung());
         uebung.setEmpfWiederholungen(request.getEmpfWiederholungen());
         uebung.setUser(user);

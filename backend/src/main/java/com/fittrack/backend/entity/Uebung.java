@@ -21,6 +21,10 @@ public class Uebung {
     @Column(nullable = false)
     private String name;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UebungTyp typ;
+
     private String beschreibung;
     private int empfWiederholungen ;
 

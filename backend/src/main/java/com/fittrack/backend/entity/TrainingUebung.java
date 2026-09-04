@@ -26,4 +26,8 @@ public class TrainingUebung {
 
     private int empfSaetze;
 
+    private Double empfDistanzMeter;
+
+    private Integer empfDauerSekunden;
+
 }

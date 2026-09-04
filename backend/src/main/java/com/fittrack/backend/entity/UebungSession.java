@@ -29,4 +29,7 @@ public class UebungSession {
     @OneToMany(mappedBy = "uebungSession", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Satz> saetze;
 
+    @OneToMany(mappedBy = "uebungSession", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AusdauerEinheit> ausdauerEinheiten;
+
 }

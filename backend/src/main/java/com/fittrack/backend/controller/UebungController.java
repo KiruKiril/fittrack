@@ -3,6 +3,8 @@ package com.fittrack.backend.controller;
 import com.fittrack.backend.dto.UebungRequest;
 import com.fittrack.backend.dto.UebungResponse;
 import com.fittrack.backend.service.UebungService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,6 +16,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/uebungen")
 @CrossOrigin(origins = "http://localhost:4200")
+@Tag(name = "Uebungen", description = "Uebungsdefinitionen (Kraft oder Ausdauer) des eingeloggten Users")
 public class UebungController {
     private final UebungService uebungService;
 
@@ -21,6 +24,7 @@ public class UebungController {
         this.uebungService = uebungService;
     }
 
+    @Operation(summary = "Alle Uebungen des eingeloggten Users abrufen")
     @GetMapping
     public ResponseEntity<List<UebungResponse>> getUebungen(@AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(
@@ -31,6 +35,7 @@ public class UebungController {
         );
     }
 
+    @Operation(summary = "Neue Uebung anlegen (typ=KRAFT oder AUSDAUER)")
     @PostMapping
     public ResponseEntity<UebungResponse> createUebung(
             @RequestBody UebungRequest request,
@@ -42,6 +47,7 @@ public class UebungController {
         );
     }
 
+    @Operation(summary = "Uebung loeschen")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUebung(
             @PathVariable Long id,
