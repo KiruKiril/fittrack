@@ -137,12 +137,19 @@ export class LogForm {
         uebungId: s.uebungId,
         saetze: s.typ === 'KRAFT'
           ? s.saetze
-              .filter((r) => r.wiederholungen !== null)
-              .map((r) => ({ wiederholungen: r.wiederholungen as number, gewicht: r.gewicht ?? 0, dropset: r.dropset }))
+              .filter((r) => r.wiederholungen !== null || r.gewicht !== null || r.dropset)
+              .map((r) => ({ wiederholungen: r.wiederholungen ?? 0, gewicht: r.gewicht ?? 0, dropset: r.dropset }))
           : [],
         ausdauerEinheiten: s.typ === 'AUSDAUER'
           ? s.ausdauerEinheiten
-              .filter((r) => r.distanzKm !== null || r.dauerMinuten !== null)
+              .filter((r) =>
+                r.distanzKm !== null ||
+                r.dauerMinuten !== null ||
+                r.herzfrequenzDurchschnitt !== null ||
+                r.herzfrequenzMax !== null ||
+                r.hoehenmeter !== null ||
+                r.notiz.trim() !== ''
+              )
               .map((r) => ({
                 dauerSekunden: Math.round((r.dauerMinuten ?? 0) * 60),
                 distanzMeter: (r.distanzKm ?? 0) * 1000,
