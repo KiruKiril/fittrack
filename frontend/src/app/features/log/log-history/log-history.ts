@@ -37,4 +37,16 @@ export class LogHistory {
     if (hatKraft && hatAusdauer) return 'Kraft + Ausdauer';
     return hatAusdauer ? 'Ausdauer' : 'Kraft';
   }
+
+  remove(log: TrainingAusfuehrung, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!log.id) return;
+    if (!confirm(`Eintrag "${log.trainingName}" wirklich löschen?`)) return;
+
+    this.logService.delete(log.id).subscribe({
+      next: () => this.logs.update((list) => list.filter((l) => l.id !== log.id)),
+      error: (err) => this.error.set(extractErrorMessage(err, 'Eintrag konnte nicht gelöscht werden.'))
+    });
+  }
 }

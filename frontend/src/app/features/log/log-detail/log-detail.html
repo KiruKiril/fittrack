@@ -13,6 +13,7 @@
       </div>
       <div class="row">
         <button class="btn btn-danger" (click)="remove()">Löschen</button>
+        <a class="btn btn-secondary" [routerLink]="['/log', l.id, 'bearbeiten']">Bearbeiten</a>
         <a class="btn btn-secondary" routerLink="/log">Zurück zum Verlauf</a>
       </div>
     </div>

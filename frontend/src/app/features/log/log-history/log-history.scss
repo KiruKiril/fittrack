@@ -31,3 +31,21 @@
   font-size: 0.8rem;
   color: var(--ink-soft);
 }
+
+.log-row-remove {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: none;
+  color: var(--ink-faint);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.log-row-remove:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
+}

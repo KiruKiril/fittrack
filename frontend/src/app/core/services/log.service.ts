@@ -21,6 +21,10 @@ export class LogService {
     return this.http.post<TrainingAusfuehrung>(this.apiUrl, log);
   }
 
+  update(id: number, log: TrainingAusfuehrung): Observable<TrainingAusfuehrung> {
+    return this.http.put<TrainingAusfuehrung>(`${this.apiUrl}/${id}`, log);
+  }
+
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }

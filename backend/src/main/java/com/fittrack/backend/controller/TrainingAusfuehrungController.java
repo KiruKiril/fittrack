@@ -61,6 +61,19 @@ public class TrainingAusfuehrungController {
         );
     }
 
+    @Operation(summary = "Ein geloggtes Training nachtraeglich korrigieren (Ort, Saetze, Ausdauer-Einheiten)")
+    @PutMapping("/{id}")
+    public ResponseEntity<TrainingAusfuehrungResponse> updateTrainingAusfuehrung(
+            @PathVariable Long id,
+            @RequestBody TrainingAusfuehrungRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(
+                TrainingAusfuehrungResponse.from(
+                        trainingAusfuehrungService.updateTrainingAusfuehrung(id, request, userDetails.getUsername())
+                )
+        );
+    }
+
     @Operation(summary = "Geloggtes Training loeschen")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTrainingAusfuehrung(

@@ -71,6 +71,23 @@ public class TrainingAusfuehrungService {
         return trainingAusfuehrungRepository.save(trainingAusfuehrung);
     }
 
+    @Transactional
+    public TrainingAusfuehrung updateTrainingAusfuehrung(Long id, TrainingAusfuehrungRequest request, String username) {
+        User user = getUser(username);
+        TrainingAusfuehrung trainingAusfuehrung = findOwnedTrainingAusfuehrung(id, user);
+
+        // Das Training (der Plan, auf dem der Eintrag basiert) bleibt beim Bearbeiten fix -
+        // hier werden nur die tatsaechlich erfassten Werte korrigiert, nicht der Plan gewechselt.
+        trainingAusfuehrung.setOrt(request.getOrt());
+
+        trainingAusfuehrung.getUebungSessions().clear();
+        trainingAusfuehrung.getUebungSessions().addAll(
+                buildUebungSessions(trainingAusfuehrung, request.getUebungSessions(), user)
+        );
+
+        return trainingAusfuehrungRepository.save(trainingAusfuehrung);
+    }
+
     public void deleteTrainingAusfuehrung(Long id, String username) {
         User user = getUser(username);
         TrainingAusfuehrung trainingAusfuehrung = findOwnedTrainingAusfuehrung(id, user);

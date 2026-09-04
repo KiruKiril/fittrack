@@ -50,6 +50,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/log/log-form/log-form').then((m) => m.LogForm)
       },
       {
+        path: 'log/:id/bearbeiten',
+        loadComponent: () => import('./features/log/log-edit/log-edit').then((m) => m.LogEdit)
+      },
+      {
         path: 'log/:id',
         loadComponent: () => import('./features/log/log-detail/log-detail').then((m) => m.LogDetail)
       }

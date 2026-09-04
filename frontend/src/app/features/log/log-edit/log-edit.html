@@ -1,0 +1,100 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>{{ trainingName }} bearbeiten</h1>
+      <p>Korrigiere, was tatsächlich passiert ist.</p>
+    </div>
+    <a class="btn btn-secondary" [routerLink]="['/log', logId]">Abbrechen</a>
+  </div>
+
+  @if (error()) {
+    <div class="form-error">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <p class="muted">Lädt…</p>
+  } @else {
+    <form class="stack" (ngSubmit)="submit()">
+      <div class="card card-pad">
+        <div class="field">
+          <label for="ort">Ort</label>
+          <input id="ort" type="text" [(ngModel)]="ort" name="ort" placeholder="z.B. Fitnessstudio, Park" />
+        </div>
+      </div>
+
+      @for (session of sessions(); track session.uebungId) {
+        <div class="card card-pad session-card">
+          <div class="row-between">
+            <h3>{{ session.uebungName }}</h3>
+            <span class="badge" [class.badge-kraft]="session.typ === 'KRAFT'" [class.badge-ausdauer]="session.typ === 'AUSDAUER'">
+              {{ session.typ === 'KRAFT' ? 'Kraft' : 'Ausdauer' }}
+            </span>
+          </div>
+
+          @if (session.typ === 'KRAFT') {
+            <div class="satz-table">
+              <div class="satz-head">
+                <span>Satz</span>
+                <span>Wdh.</span>
+                <span>Gewicht (kg)</span>
+                <span>Dropset</span>
+                <span></span>
+              </div>
+              @for (satz of session.saetze; track $index) {
+                <div class="satz-row">
+                  <span class="satz-index tabular">{{ $index + 1 }}</span>
+                  <input type="number" min="0" placeholder="Wdh." [(ngModel)]="satz.wiederholungen" [name]="'reps-' + session.uebungId + '-' + $index" />
+                  <input type="number" min="0" step="0.5" placeholder="kg" [(ngModel)]="satz.gewicht" [name]="'gewicht-' + session.uebungId + '-' + $index" />
+                  <input type="checkbox" [(ngModel)]="satz.dropset" [name]="'dropset-' + session.uebungId + '-' + $index" />
+                  <button type="button" class="satz-remove" (click)="removeSatz(session, $index)" aria-label="Satz entfernen">✕</button>
+                </div>
+              }
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" (click)="addSatz(session)">+ Satz</button>
+          }
+
+          @if (session.typ === 'AUSDAUER') {
+            @for (einheit of session.ausdauerEinheiten; track $index) {
+              <div class="ausdauer-block">
+                <div class="field-row">
+                  <div class="field">
+                    <label>Distanz (km)</label>
+                    <input type="number" min="0" step="0.1" [(ngModel)]="einheit.distanzKm" [name]="'distanz-' + session.uebungId + '-' + $index" />
+                  </div>
+                  <div class="field">
+                    <label>Dauer (min)</label>
+                    <input type="number" min="0" [(ngModel)]="einheit.dauerMinuten" [name]="'dauer-' + session.uebungId + '-' + $index" />
+                  </div>
+                  <div class="field">
+                    <label>Ø Puls</label>
+                    <input type="number" min="0" [(ngModel)]="einheit.herzfrequenzDurchschnitt" [name]="'hfavg-' + session.uebungId + '-' + $index" />
+                  </div>
+                  <div class="field">
+                    <label>Max. Puls</label>
+                    <input type="number" min="0" [(ngModel)]="einheit.herzfrequenzMax" [name]="'hfmax-' + session.uebungId + '-' + $index" />
+                  </div>
+                  <div class="field">
+                    <label>Höhenmeter</label>
+                    <input type="number" min="0" [(ngModel)]="einheit.hoehenmeter" [name]="'hoehe-' + session.uebungId + '-' + $index" />
+                  </div>
+                </div>
+                <div class="field">
+                  <label>Notiz</label>
+                  <input type="text" [(ngModel)]="einheit.notiz" [name]="'notiz-' + session.uebungId + '-' + $index" placeholder="optional" />
+                </div>
+                @if (session.ausdauerEinheiten.length > 1) {
+                  <button type="button" class="link-btn" (click)="removeAusdauer(session, $index)">Entfernen</button>
+                }
+              </div>
+            }
+            <button type="button" class="btn btn-secondary btn-sm" (click)="addAusdauer(session)">+ weitere Einheit (Intervall)</button>
+          }
+        </div>
+      }
+
+      <button class="btn btn-primary" type="submit" [disabled]="saving()">
+        {{ saving() ? 'Speichert…' : 'Änderungen speichern' }}
+      </button>
+    </form>
+  }
+</div>

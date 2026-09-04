@@ -31,6 +31,7 @@
             [class.badge-mixed]="typLabel(log) === 'Kraft + Ausdauer'">
             {{ typLabel(log) }}
           </span>
+          <button class="log-row-remove" (click)="remove(log, $event)" aria-label="Eintrag löschen">✕</button>
         </a>
       }
     </div>
