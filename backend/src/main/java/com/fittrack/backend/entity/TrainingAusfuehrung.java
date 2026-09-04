@@ -37,6 +37,9 @@ public class TrainingAusfuehrung {
 
     private String ort;
 
+    /** Gesamtdauer der Trainingseinheit (Start bis Ende) in Sekunden - vom Live-Modus gemessen. */
+    private Integer dauerSekunden;
+
     @OneToMany(mappedBy = "trainingAusfuehrung", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UebungSession> uebungSessions;
 

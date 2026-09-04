@@ -8,5 +8,6 @@ import java.util.List;
 public class TrainingAusfuehrungRequest {
     private Long trainingId;
     private String ort;
+    private Integer dauerSekunden;
     private List<UebungSessionRequest> uebungSessions;
 }

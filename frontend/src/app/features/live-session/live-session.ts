@@ -46,6 +46,22 @@ interface AusdauerResult {
 
 type StepResult = SatzResult | AusdauerResult;
 
+interface StepTiming {
+  uebungId: number;
+  uebungName: string;
+  kind: 'satz' | 'ausdauer';
+  setIndex: number;
+  activeSeconds: number;
+  restSeconds: number | null;
+}
+
+interface ExerciseTimingSummary {
+  uebungName: string;
+  activeSeconds: number;
+  restSeconds: number;
+  steps: StepTiming[];
+}
+
 interface PersistedState {
   stepIndex: number;
   phase: Phase;
@@ -53,6 +69,10 @@ interface PersistedState {
   results: (StepResult | null)[];
   ort: string;
   trainingName: string;
+  sessionStartedAt: number | null;
+  currentStepStartedAt: number | null;
+  restStartedAt: number | null;
+  timings: (StepTiming | null)[];
 }
 
 @Component({
@@ -73,15 +93,24 @@ export class LiveSession implements OnDestroy {
   private storageKey = `fittrack-live-${this.trainingId}`;
   private timerHandle: ReturnType<typeof setInterval> | null = null;
   private restEndsAt: number | null = null;
+  private sessionStartedAt: number | null = null;
+  private currentStepStartedAt: number | null = null;
+  private restStartedAt: number | null = null;
 
   training = signal<Training | null>(null);
   steps: PlanStep[] = [];
   results: (StepResult | null)[] = [];
+  timings: (StepTiming | null)[] = [];
 
   loading = signal(true);
   error = signal<string | null>(null);
   saving = signal(false);
   createdLogId = signal<number | null>(null);
+
+  totalSeconds = signal(0);
+  activeSeconds = signal(0);
+  restSecondsTotal = signal(0);
+  exerciseSummaries = signal<ExerciseTimingSummary[]>([]);
 
   phase = signal<Phase>('intro');
   stepIndex = signal(0);
@@ -121,6 +150,7 @@ export class LiveSession implements OnDestroy {
         const typById = new Map(uebungen.map((u) => [u.id, u.typ]));
         this.steps = this.buildSteps(training, typById);
         this.results = new Array(this.steps.length).fill(null);
+        this.timings = new Array(this.steps.length).fill(null);
         this.restoreIfPresent();
         this.loading.set(false);
       },
@@ -200,6 +230,8 @@ export class LiveSession implements OnDestroy {
 
   start(): void {
     this.phase.set('performing');
+    this.sessionStartedAt = Date.now();
+    this.currentStepStartedAt = Date.now();
     this.liveSessionTracker.start(this.trainingId, this.training()?.name ?? '');
     this.persist();
   }
@@ -220,6 +252,18 @@ export class LiveSession implements OnDestroy {
           notiz: this.inputNotiz
         };
 
+    const activeSeconds = this.currentStepStartedAt !== null
+      ? Math.max(0, Math.round((Date.now() - this.currentStepStartedAt) / 1000))
+      : 0;
+    this.timings[this.stepIndex()] = {
+      uebungId: step.uebungId,
+      uebungName: step.uebungName,
+      kind: step.kind,
+      setIndex: step.setIndex,
+      activeSeconds,
+      restSeconds: null
+    };
+
     if (step.isLastStepOverall) {
       this.finishSession();
       return;
@@ -231,6 +275,7 @@ export class LiveSession implements OnDestroy {
 
   private beginRest(seconds: number): void {
     this.restEndsAt = Date.now() + seconds * 1000;
+    this.restStartedAt = Date.now();
     this.phase.set('resting');
     this.persist();
     this.tick();
@@ -263,11 +308,23 @@ export class LiveSession implements OnDestroy {
 
   private advanceToNextStep(): void {
     if (this.timerHandle) clearInterval(this.timerHandle);
+    this.recordRestEnd();
     this.restEndsAt = null;
     this.stepIndex.update((v) => v + 1);
+    this.currentStepStartedAt = Date.now();
     this.resetInputs();
     this.phase.set('performing');
     this.persist();
+  }
+
+  /** Traegt die tatsaechliche Pausendauer (egal ob abgelaufen oder uebersprungen) beim
+   *  gerade zu Ende gegangenen Schritt nach - muss vor dem Erhoehen von stepIndex laufen. */
+  private recordRestEnd(): void {
+    if (this.restStartedAt === null) return;
+    const restSeconds = Math.max(0, Math.round((Date.now() - this.restStartedAt) / 1000));
+    const timing = this.timings[this.stepIndex()];
+    if (timing) timing.restSeconds = restSeconds;
+    this.restStartedAt = null;
   }
 
   private resetInputs(): void {
@@ -285,9 +342,32 @@ export class LiveSession implements OnDestroy {
   private finishSession(): void {
     if (this.timerHandle) clearInterval(this.timerHandle);
     this.phase.set('done');
+
+    this.totalSeconds.set(
+      this.sessionStartedAt !== null ? Math.max(0, Math.round((Date.now() - this.sessionStartedAt) / 1000)) : 0
+    );
+    this.activeSeconds.set(this.timings.reduce((sum, t) => sum + (t?.activeSeconds ?? 0), 0));
+    this.restSecondsTotal.set(this.timings.reduce((sum, t) => sum + (t?.restSeconds ?? 0), 0));
+    this.exerciseSummaries.set(this.buildExerciseSummaries());
+
     this.liveSessionTracker.clear();
     this.clearPersisted();
     this.submitLog();
+  }
+
+  private buildExerciseSummaries(): ExerciseTimingSummary[] {
+    const byUebung = new Map<number, ExerciseTimingSummary>();
+    for (const t of this.timings) {
+      if (!t) continue;
+      if (!byUebung.has(t.uebungId)) {
+        byUebung.set(t.uebungId, { uebungName: t.uebungName, activeSeconds: 0, restSeconds: 0, steps: [] });
+      }
+      const entry = byUebung.get(t.uebungId)!;
+      entry.activeSeconds += t.activeSeconds;
+      entry.restSeconds += t.restSeconds ?? 0;
+      entry.steps.push(t);
+    }
+    return Array.from(byUebung.values());
   }
 
   private submitLog(): void {
@@ -322,6 +402,7 @@ export class LiveSession implements OnDestroy {
     const payload: TrainingAusfuehrung = {
       trainingId: training.id,
       ort: this.ort || null,
+      dauerSekunden: this.totalSeconds(),
       uebungSessions: Array.from(bySession.values())
     };
 
@@ -384,7 +465,11 @@ export class LiveSession implements OnDestroy {
         restEndsAt: this.restEndsAt,
         results: this.results,
         ort: this.ort,
-        trainingName: this.training()?.name ?? ''
+        trainingName: this.training()?.name ?? '',
+        sessionStartedAt: this.sessionStartedAt,
+        currentStepStartedAt: this.currentStepStartedAt,
+        restStartedAt: this.restStartedAt,
+        timings: this.timings
       };
       localStorage.setItem(this.storageKey, JSON.stringify(state));
     } catch {
@@ -416,6 +501,10 @@ export class LiveSession implements OnDestroy {
       this.stepIndex.set(state.stepIndex);
       this.results = state.results;
       this.ort = state.ort;
+      this.sessionStartedAt = state.sessionStartedAt ?? Date.now();
+      this.currentStepStartedAt = state.currentStepStartedAt ?? Date.now();
+      this.restStartedAt = state.restStartedAt ?? null;
+      this.timings = state.timings ?? new Array(this.steps.length).fill(null);
 
       if (state.phase === 'resting' && state.restEndsAt) {
         this.restEndsAt = state.restEndsAt;

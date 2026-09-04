@@ -136,7 +136,34 @@
       <div class="done">
         <div class="done-emoji">🎉</div>
         <h1>Training abgeschlossen!</h1>
-        <p class="muted">{{ t.name }} · {{ steps.length }} Schritte erledigt</p>
+        <p class="muted">{{ t.name }}</p>
+
+        <div class="done-total">
+          <span class="done-total-value tabular">{{ formatTime(totalSeconds()) }}</span>
+          <span class="done-total-label">Gesamtzeit</span>
+          <span class="done-total-split tabular">Aktiv {{ formatTime(activeSeconds()) }} · Pause {{ formatTime(restSecondsTotal()) }}</span>
+        </div>
+
+        <div class="done-breakdown">
+          @for (ex of exerciseSummaries(); track ex.uebungName) {
+            <div class="done-exercise">
+              <div class="row-between">
+                <span class="done-exercise-name">{{ ex.uebungName }}</span>
+                <span class="tabular done-exercise-time">{{ formatTime(ex.activeSeconds + ex.restSeconds) }}</span>
+              </div>
+              @if (ex.steps.length > 1) {
+                <div class="done-step-chips">
+                  @for (s of ex.steps; track s.setIndex) {
+                    <span class="done-step-chip tabular">
+                      {{ s.kind === 'satz' ? 'Satz ' + s.setIndex : 'Einheit' }} {{ s.activeSeconds }}s
+                      @if (s.restSeconds !== null) { → {{ s.restSeconds }}s Pause }
+                    </span>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
 
         @if (saving()) {
           <p class="muted">Speichert…</p>

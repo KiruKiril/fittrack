@@ -14,6 +14,7 @@ public class TrainingAusfuehrungResponse {
     private Long trainingId;
     private String trainingName;
     private String ort;
+    private Integer dauerSekunden;
     private LocalDateTime createdAt;
     private List<UebungSessionResponse> uebungSessions;
 
@@ -23,6 +24,7 @@ public class TrainingAusfuehrungResponse {
         dto.setTrainingId(trainingAusfuehrung.getTraining().getId());
         dto.setTrainingName(trainingAusfuehrung.getTraining().getName());
         dto.setOrt(trainingAusfuehrung.getOrt());
+        dto.setDauerSekunden(trainingAusfuehrung.getDauerSekunden());
         dto.setCreatedAt(trainingAusfuehrung.getCreatedAt());
         dto.setUebungSessions(
                 trainingAusfuehrung.getUebungSessions() == null

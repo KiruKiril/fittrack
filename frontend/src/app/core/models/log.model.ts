@@ -29,6 +29,7 @@ export interface TrainingAusfuehrung {
   trainingId: number;
   trainingName?: string;
   ort?: string | null;
+  dauerSekunden?: number | null;
   createdAt?: string;
   uebungSessions: UebungSession[];
 }

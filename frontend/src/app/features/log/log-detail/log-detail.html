@@ -9,7 +9,10 @@
     <div class="page-header">
       <div>
         <h1>{{ l.trainingName }}</h1>
-        <p>{{ l.ort || 'Kein Ort' }} · {{ l.createdAt | date: 'dd.MM.yyyy, HH:mm' }}</p>
+        <p>
+          {{ l.ort || 'Kein Ort' }} · {{ l.createdAt | date: 'dd.MM.yyyy, HH:mm' }}
+          @if (l.dauerSekunden) { · {{ formatDuration(l.dauerSekunden) }} }
+        </p>
       </div>
       <div class="row">
         <button class="btn btn-danger" (click)="remove()">Löschen</button>

@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { LogService } from '../../../core/services/log.service';
 import { TrainingAusfuehrung } from '../../../core/models/log.model';
 import { extractErrorMessage } from '../../../core/error-message';
+import { formatDuration } from '../../../core/format-duration';
 
 @Component({
   selector: 'app-log-detail',
@@ -33,6 +34,8 @@ export class LogDetail {
       }
     });
   }
+
+  formatDuration = formatDuration;
 
   remove(): void {
     const l = this.log();

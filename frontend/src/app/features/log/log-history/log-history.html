@@ -23,7 +23,10 @@
         <a class="log-row" [routerLink]="['/log', log.id]">
           <div class="log-row-main">
             <span class="log-row-title">{{ log.trainingName }}</span>
-            <span class="log-row-meta">{{ log.ort || 'Kein Ort' }} · {{ log.createdAt | date: 'dd.MM.yyyy, HH:mm' }}</span>
+            <span class="log-row-meta">
+              {{ log.ort || 'Kein Ort' }} · {{ log.createdAt | date: 'dd.MM.yyyy, HH:mm' }}
+              @if (log.dauerSekunden) { · {{ formatDuration(log.dauerSekunden) }} }
+            </span>
           </div>
           <span class="badge"
             [class.badge-kraft]="typLabel(log) === 'Kraft'"
