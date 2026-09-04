@@ -10,6 +10,7 @@ import { UebungTyp } from '../../core/models/uebung.model';
 import { TrainingAusfuehrung } from '../../core/models/log.model';
 import { extractErrorMessage } from '../../core/error-message';
 import { LiveSessionTracker } from '../../core/services/live-session-tracker';
+import { NumberStepper } from '../../shared/number-stepper/number-stepper';
 
 type Phase = 'intro' | 'performing' | 'resting' | 'done';
 
@@ -25,6 +26,10 @@ interface PlanStep {
   pauseAfterSameExercise: number;
   pauseAfterExercise: number;
   zielLabel: string;
+  previousReps: number | null;
+  previousGewicht: number | null;
+  previousDistanzKm: number | null;
+  previousDauerMinuten: number | null;
 }
 
 interface SatzResult {
@@ -77,7 +82,7 @@ interface PersistedState {
 
 @Component({
   selector: 'app-live-session',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, NumberStepper],
   templateUrl: './live-session.html',
   styleUrl: './live-session.scss'
 })
@@ -143,12 +148,14 @@ export class LiveSession implements OnDestroy {
   constructor() {
     forkJoin({
       training: this.trainingService.getOne(this.trainingId),
-      uebungen: this.uebungService.getAll()
+      uebungen: this.uebungService.getAll(),
+      logs: this.logService.getAll()
     }).subscribe({
-      next: ({ training, uebungen }) => {
+      next: ({ training, uebungen, logs }) => {
         this.training.set(training);
         const typById = new Map(uebungen.map((u) => [u.id, u.typ]));
-        this.steps = this.buildSteps(training, typById);
+        const sortedLogs = [...logs].sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''));
+        this.steps = this.buildSteps(training, typById, sortedLogs);
         this.results = new Array(this.steps.length).fill(null);
         this.timings = new Array(this.steps.length).fill(null);
         this.restoreIfPresent();
@@ -165,7 +172,11 @@ export class LiveSession implements OnDestroy {
     if (this.timerHandle) clearInterval(this.timerHandle);
   }
 
-  private buildSteps(training: Training, typById: Map<number | undefined, UebungTyp | undefined>): PlanStep[] {
+  private buildSteps(
+    training: Training,
+    typById: Map<number | undefined, UebungTyp | undefined>,
+    sortedLogs: TrainingAusfuehrung[]
+  ): PlanStep[] {
     const steps: PlanStep[] = [];
 
     for (const pu of training.uebungen) {
@@ -180,8 +191,10 @@ export class LiveSession implements OnDestroy {
       const zielLabel = zielTeile.length ? `Ziel: ${zielTeile.join(' · ')}` : '';
 
       if (typ === 'KRAFT') {
+        const previousSaetze = this.findPreviousSaetze(pu.uebungId, sortedLogs);
         const setCount = Math.max(1, pu.empfSaetze || 1);
         for (let s = 1; s <= setCount; s++) {
+          const previous = previousSaetze[s - 1] ?? previousSaetze[previousSaetze.length - 1] ?? null;
           steps.push({
             uebungId: pu.uebungId,
             uebungName: pu.uebungName ?? '',
@@ -193,10 +206,15 @@ export class LiveSession implements OnDestroy {
             isLastStepOverall: false,
             pauseAfterSameExercise: pauseSatz,
             pauseAfterExercise: pauseUebung,
-            zielLabel
+            zielLabel,
+            previousReps: previous?.wiederholungen ?? null,
+            previousGewicht: previous?.gewicht ?? null,
+            previousDistanzKm: null,
+            previousDauerMinuten: null
           });
         }
       } else {
+        const previousEinheit = this.findPreviousAusdauer(pu.uebungId, sortedLogs);
         steps.push({
           uebungId: pu.uebungId,
           uebungName: pu.uebungName ?? '',
@@ -208,7 +226,11 @@ export class LiveSession implements OnDestroy {
           isLastStepOverall: false,
           pauseAfterSameExercise: pauseSatz,
           pauseAfterExercise: pauseUebung,
-          zielLabel
+          zielLabel,
+          previousReps: null,
+          previousGewicht: null,
+          previousDistanzKm: previousEinheit ? previousEinheit.distanzMeter / 1000 : null,
+          previousDauerMinuten: previousEinheit ? previousEinheit.dauerSekunden / 60 : null
         });
       }
     }
@@ -217,6 +239,23 @@ export class LiveSession implements OnDestroy {
       steps[steps.length - 1].isLastStepOverall = true;
     }
     return steps;
+  }
+
+  /** Saetze der letzten Ausfuehrung dieser Uebung (falls vorhanden), zum Vorbefuellen. */
+  private findPreviousSaetze(uebungId: number, sortedLogs: TrainingAusfuehrung[]) {
+    for (const log of sortedLogs) {
+      const session = log.uebungSessions.find((s) => s.uebungId === uebungId && s.saetze.length > 0);
+      if (session) return session.saetze;
+    }
+    return [];
+  }
+
+  private findPreviousAusdauer(uebungId: number, sortedLogs: TrainingAusfuehrung[]) {
+    for (const log of sortedLogs) {
+      const session = log.uebungSessions.find((s) => s.uebungId === uebungId && s.ausdauerEinheiten.length > 0);
+      if (session) return session.ausdauerEinheiten[0];
+    }
+    return null;
   }
 
   private uniqueUebungIndex(atStepIndex: number): number {
@@ -232,6 +271,7 @@ export class LiveSession implements OnDestroy {
     this.phase.set('performing');
     this.sessionStartedAt = Date.now();
     this.currentStepStartedAt = Date.now();
+    this.applyPreviousValues(this.currentStep());
     this.liveSessionTracker.start(this.trainingId, this.training()?.name ?? '');
     this.persist();
   }
@@ -313,6 +353,7 @@ export class LiveSession implements OnDestroy {
     this.stepIndex.update((v) => v + 1);
     this.currentStepStartedAt = Date.now();
     this.resetInputs();
+    this.applyPreviousValues(this.currentStep());
     this.phase.set('performing');
     this.persist();
   }
@@ -337,6 +378,19 @@ export class LiveSession implements OnDestroy {
     this.inputHfMax = null;
     this.inputHoehenmeter = null;
     this.inputNotiz = '';
+  }
+
+  /** Befuellt Wiederholungen/Gewicht bzw. Distanz/Dauer mit den Werten der letzten
+   *  Ausfuehrung dieser Uebung, damit nicht jedes Mal alles neu eingetippt werden muss. */
+  private applyPreviousValues(step: PlanStep | null): void {
+    if (!step) return;
+    if (step.kind === 'satz') {
+      this.inputReps = step.previousReps;
+      this.inputGewicht = step.previousGewicht;
+    } else {
+      this.inputDistanzKm = step.previousDistanzKm;
+      this.inputDauerMinuten = step.previousDauerMinuten;
+    }
   }
 
   private finishSession(): void {
@@ -512,6 +566,10 @@ export class LiveSession implements OnDestroy {
         this.tick();
       } else if (state.phase === 'performing' || state.phase === 'resting') {
         this.phase.set('performing');
+      }
+
+      if (this.phase() === 'performing') {
+        this.applyPreviousValues(this.currentStep());
       }
 
       if (this.phase() === 'performing' || this.phase() === 'resting') {

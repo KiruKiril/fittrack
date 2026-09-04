@@ -1,0 +1,13 @@
+<div class="stepper">
+  <button type="button" class="stepper-btn" (click)="decrement()" aria-label="Verringern">−</button>
+  <input
+    class="stepper-input tabular"
+    type="number"
+    inputmode="decimal"
+    [step]="step"
+    [placeholder]="placeholder"
+    [value]="value"
+    (input)="onTypeInput($event)"
+  />
+  <button type="button" class="stepper-btn" (click)="increment()" aria-label="Erhöhen">+</button>
+</div>

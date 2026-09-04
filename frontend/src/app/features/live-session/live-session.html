@@ -62,14 +62,17 @@
 
         @if (step.kind === 'satz') {
           <div class="input-card card card-pad">
+            @if (step.previousReps !== null || step.previousGewicht !== null) {
+              <p class="previous-hint">Letztes Mal: {{ step.previousReps ?? '–' }} × {{ step.previousGewicht ?? '–' }} kg</p>
+            }
             <div class="field-row">
               <div class="field">
                 <label>Wiederholungen</label>
-                <input type="number" min="0" [(ngModel)]="inputReps" name="reps" inputmode="numeric" autofocus />
+                <app-number-stepper [(value)]="inputReps" [step]="1" [min]="0" placeholder="0" />
               </div>
               <div class="field">
                 <label>Gewicht (kg)</label>
-                <input type="number" min="0" step="0.5" [(ngModel)]="inputGewicht" name="gewicht" inputmode="decimal" />
+                <app-number-stepper [(value)]="inputGewicht" [step]="2.5" [min]="0" placeholder="0" />
               </div>
             </div>
             <label class="dropset-check">
