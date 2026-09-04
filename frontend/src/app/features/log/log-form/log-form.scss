@@ -19,9 +19,9 @@
 .satz-head,
 .satz-row {
   display: grid;
-  grid-template-columns: 32px 1fr 1fr 60px 70px;
+  grid-template-columns: 26px 1fr 1fr 44px 32px;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .satz-head {
@@ -41,14 +41,35 @@
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  padding: 8px 10px;
+  padding: 10px 8px;
   width: 100%;
+  text-align: center;
+  font-size: 1rem;
+  min-width: 0;
 }
 
 .satz-row input[type='checkbox'] {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   justify-self: center;
+}
+
+.satz-remove {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: none;
+  color: var(--ink-faint);
+  font-size: 0.95rem;
+  cursor: pointer;
+  justify-self: center;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.satz-remove:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
 }
 
 .ausdauer-block {
@@ -60,9 +81,6 @@
 
 .muted { color: var(--ink-soft); font-size: 0.9rem; }
 
-@media (max-width: 600px) {
+@media (max-width: 480px) {
   .satz-head { display: none; }
-  .satz-row {
-    grid-template-columns: 24px 1fr 1fr 44px 1fr;
-  }
 }

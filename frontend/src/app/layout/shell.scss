@@ -90,7 +90,55 @@
   flex: 1;
 }
 
+/* Bottom tab bar: hidden on desktop, shown only on narrow/touch viewports */
+.tabbar {
+  display: none;
+}
+
 @media (max-width: 640px) {
   .username { display: none; }
-  .topbar-inner { gap: 16px; }
+  .topbar-inner { gap: 16px; padding: 0 16px; }
+  .nav { display: none; }
+
+  .content {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom));
+  }
+
+  .tabbar {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    background: var(--surface);
+    border-top: 1px solid var(--line);
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+  }
+
+  .tabbar a {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 6px 2px;
+    text-decoration: none;
+    color: var(--ink-faint);
+    border-radius: var(--radius-sm);
+  }
+
+  .tabbar a svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .tabbar a span {
+    font-size: 0.66rem;
+    font-weight: 600;
+  }
+
+  .tabbar a.active {
+    color: var(--ink);
+  }
 }

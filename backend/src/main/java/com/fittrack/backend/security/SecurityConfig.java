@@ -31,7 +31,14 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(request -> {
                     var config = new org.springframework.web.cors.CorsConfiguration();
-                    config.setAllowedOrigins(java.util.List.of("http://localhost:4200"));
+                    // Erlaubt localhost und jede private LAN-IP auf Port 4200, damit die App
+                    // auch vom Handy im selben WLAN erreichbar ist (IP-Adresse variiert je Netzwerk).
+                    config.setAllowedOriginPatterns(java.util.List.of(
+                            "http://localhost:4200",
+                            "http://192.168.*.*:4200",
+                            "http://10.*.*.*:4200",
+                            "http://172.16.*.*:4200"
+                    ));
                     config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                     config.setAllowedHeaders(java.util.List.of("*"));
                     config.setAllowCredentials(true);

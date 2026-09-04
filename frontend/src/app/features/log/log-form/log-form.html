@@ -46,10 +46,10 @@
               @for (satz of session.saetze; track $index) {
                 <div class="satz-row">
                   <span class="satz-index tabular">{{ $index + 1 }}</span>
-                  <input type="number" min="0" [(ngModel)]="satz.wiederholungen" [name]="'reps-' + session.uebungId + '-' + $index" />
-                  <input type="number" min="0" step="0.5" [(ngModel)]="satz.gewicht" [name]="'gewicht-' + session.uebungId + '-' + $index" />
+                  <input type="number" min="0" placeholder="Wdh." [(ngModel)]="satz.wiederholungen" [name]="'reps-' + session.uebungId + '-' + $index" />
+                  <input type="number" min="0" step="0.5" placeholder="kg" [(ngModel)]="satz.gewicht" [name]="'gewicht-' + session.uebungId + '-' + $index" />
                   <input type="checkbox" [(ngModel)]="satz.dropset" [name]="'dropset-' + session.uebungId + '-' + $index" />
-                  <button type="button" class="link-btn" (click)="removeSatz(session, $index)">Entfernen</button>
+                  <button type="button" class="satz-remove" (click)="removeSatz(session, $index)" aria-label="Satz entfernen">✕</button>
                 </div>
               }
             </div>
