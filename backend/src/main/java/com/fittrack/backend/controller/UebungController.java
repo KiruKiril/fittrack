@@ -10,7 +10,9 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -27,10 +29,11 @@ public class UebungController {
     @Operation(summary = "Alle Uebungen des eingeloggten Users abrufen")
     @GetMapping
     public ResponseEntity<List<UebungResponse>> getUebungen(@AuthenticationPrincipal UserDetails userDetails) {
+        Map<Long, List<String>> verwendetInTrainings = uebungService.getTrainingNamesByUebungId(userDetails.getUsername());
         return ResponseEntity.ok(
                 uebungService.getAllUebungen(userDetails.getUsername())
                         .stream()
-                        .map(UebungResponse::from)
+                        .map(u -> UebungResponse.from(u, verwendetInTrainings.getOrDefault(u.getId(), Collections.emptyList())))
                         .collect(Collectors.toList())
         );
     }

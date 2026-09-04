@@ -50,6 +50,12 @@ export class Uebungen {
     });
   }
 
+  verwendetHinweis(uebung: Uebung): string | null {
+    const trainings = uebung.verwendetInTrainings;
+    if (!trainings || trainings.length === 0) return null;
+    return `Wird verwendet in: ${trainings.join(', ')}`;
+  }
+
   kraftUebungen(): Uebung[] {
     return this.uebungen().filter((u) => u.typ === 'KRAFT');
   }

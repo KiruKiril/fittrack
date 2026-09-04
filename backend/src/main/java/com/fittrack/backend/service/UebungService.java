@@ -2,12 +2,12 @@ package com.fittrack.backend.service;
 
 import com.fittrack.backend.dto.UebungRequest;
 import com.fittrack.backend.entity.Training;
+import com.fittrack.backend.entity.TrainingUebung;
 import com.fittrack.backend.entity.Uebung;
 import com.fittrack.backend.entity.UebungTyp;
 import com.fittrack.backend.entity.UebungZuweisung;
 import com.fittrack.backend.entity.User;
 import com.fittrack.backend.repository.TrainingRepository;
-import com.fittrack.backend.repository.TrainingUebungRepository;
 import com.fittrack.backend.repository.TrainingZuweisungRepository;
 import com.fittrack.backend.repository.UebungRepository;
 import com.fittrack.backend.repository.UebungZuweisungRepository;
@@ -17,7 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,20 +29,17 @@ public class UebungService {
     private final UebungZuweisungRepository uebungZuweisungRepository;
     private final TrainingRepository trainingRepository;
     private final TrainingZuweisungRepository trainingZuweisungRepository;
-    private final TrainingUebungRepository trainingUebungRepository;
     private final UserRepository userRepository;
 
     public UebungService(UebungRepository uebungRepository,
                           UebungZuweisungRepository uebungZuweisungRepository,
                           TrainingRepository trainingRepository,
                           TrainingZuweisungRepository trainingZuweisungRepository,
-                          TrainingUebungRepository trainingUebungRepository,
                           UserRepository userRepository) {
         this.uebungRepository = uebungRepository;
         this.uebungZuweisungRepository = uebungZuweisungRepository;
         this.trainingRepository = trainingRepository;
         this.trainingZuweisungRepository = trainingZuweisungRepository;
-        this.trainingUebungRepository = trainingUebungRepository;
         this.userRepository = userRepository;
     }
 
@@ -104,9 +103,11 @@ public class UebungService {
         Uebung uebung = uebungRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Uebung not found"));
 
-        if (isUsedByAnyTrainingOfUser(uebung.getId(), user)) {
+        List<String> blockierendeTrainings = trainingsUsingUebung(uebung.getId(), user);
+        if (!blockierendeTrainings.isEmpty()) {
             throw new RuntimeException(
-                    "'" + uebung.getName() + "' wird von einem deiner Trainingspläne verwendet und kann daher nicht entfernt werden");
+                    "'" + uebung.getName() + "' wird von " + String.join(", ", blockierendeTrainings)
+                            + " verwendet und kann daher nicht entfernt werden");
         }
 
         if (uebung.getUser() == null) {
@@ -124,17 +125,33 @@ public class UebungService {
         uebungRepository.deleteById(id);
     }
 
-    private boolean isUsedByAnyTrainingOfUser(Long uebungId, User user) {
-        List<Long> trainingIds = trainingRepository.findByUserId(user.getId()).stream()
-                .map(Training::getId)
+    /** Namen aller (eigenen oder hinzugefuegten) Trainingsplaene des Users, die diese Uebung verwenden. */
+    private List<String> trainingsUsingUebung(Long uebungId, User user) {
+        return accessibleTrainings(user).stream()
+                .filter(t -> t.getUebungen().stream().anyMatch(tu -> tu.getUebung().getId().equals(uebungId)))
+                .map(Training::getName)
                 .collect(Collectors.toList());
-        trainingZuweisungRepository.findByUserId(user.getId())
-                .forEach(z -> trainingIds.add(z.getTraining().getId()));
+    }
 
-        if (trainingIds.isEmpty()) {
-            return false;
+    /** Fuer jede Uebung des Users die Namen der Trainingsplaene, die sie verwenden (leer = ungenutzt, loeschbar). */
+    public Map<Long, List<String>> getTrainingNamesByUebungId(String username) {
+        User user = getUser(username);
+        Map<Long, List<String>> result = new HashMap<>();
+
+        for (Training training : accessibleTrainings(user)) {
+            for (TrainingUebung tu : training.getUebungen()) {
+                result.computeIfAbsent(tu.getUebung().getId(), k -> new ArrayList<>()).add(training.getName());
+            }
         }
-        return trainingUebungRepository.existsByUebungIdAndTrainingIdIn(uebungId, trainingIds);
+
+        return result;
+    }
+
+    private List<Training> accessibleTrainings(User user) {
+        List<Training> trainings = new ArrayList<>(trainingRepository.findByUserId(user.getId()));
+        trainingZuweisungRepository.findByUserId(user.getId())
+                .forEach(z -> trainings.add(z.getTraining()));
+        return trainings;
     }
 
     private List<Uebung> getAssignedLibraryUebungen(User user) {

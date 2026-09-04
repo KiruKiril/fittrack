@@ -8,4 +8,5 @@ export interface Uebung {
   empfWiederholungen?: number;
   createdAt?: string;
   bibliothek?: boolean;
+  verwendetInTrainings?: string[];
 }

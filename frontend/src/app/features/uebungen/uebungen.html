@@ -100,11 +100,20 @@
                   <span class="badge badge-kraft"><span class="badge-dot"></span>Kraft</span>
                   @if (u.bibliothek) { <span class="badge badge-bibliothek">Bibliothek</span> }
                 </div>
-                <button class="btn btn-danger btn-sm" (click)="remove(u)">{{ u.bibliothek ? 'Entfernen' : 'Löschen' }}</button>
+                <button
+                  class="btn btn-danger btn-sm"
+                  [disabled]="!!verwendetHinweis(u)"
+                  [title]="verwendetHinweis(u) ?? ''"
+                  (click)="remove(u)">
+                  {{ u.bibliothek ? 'Entfernen' : 'Löschen' }}
+                </button>
               </div>
               <h3>{{ u.name }}</h3>
               @if (u.beschreibung) { <p class="uebung-desc">{{ u.beschreibung }}</p> }
               <p class="uebung-meta tabular">Ziel: {{ u.empfWiederholungen }} Wdh.</p>
+              @if (verwendetHinweis(u); as hinweis) {
+                <p class="uebung-verwendet">{{ hinweis }}</p>
+              }
             </div>
           }
         </div>
@@ -124,10 +133,19 @@
                   <span class="badge badge-ausdauer"><span class="badge-dot"></span>Ausdauer</span>
                   @if (u.bibliothek) { <span class="badge badge-bibliothek">Bibliothek</span> }
                 </div>
-                <button class="btn btn-danger btn-sm" (click)="remove(u)">{{ u.bibliothek ? 'Entfernen' : 'Löschen' }}</button>
+                <button
+                  class="btn btn-danger btn-sm"
+                  [disabled]="!!verwendetHinweis(u)"
+                  [title]="verwendetHinweis(u) ?? ''"
+                  (click)="remove(u)">
+                  {{ u.bibliothek ? 'Entfernen' : 'Löschen' }}
+                </button>
               </div>
               <h3>{{ u.name }}</h3>
               @if (u.beschreibung) { <p class="uebung-desc">{{ u.beschreibung }}</p> }
+              @if (verwendetHinweis(u); as hinweis) {
+                <p class="uebung-verwendet">{{ hinweis }}</p>
+              }
             </div>
           }
         </div>
