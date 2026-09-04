@@ -23,8 +23,10 @@ public class TrainingResponse {
         dto.setId(training.getId());
         dto.setName(training.getName());
         dto.setBeschreibung(training.getBeschreibung());
-        dto.setDefaultPauseZwischenSaetzenSekunden(training.getDefaultPauseZwischenSaetzenSekunden());
-        dto.setDefaultPauseZwischenUebungenSekunden(training.getDefaultPauseZwischenUebungenSekunden());
+        dto.setDefaultPauseZwischenSaetzenSekunden(
+                training.getDefaultPauseZwischenSaetzenSekunden() != null ? training.getDefaultPauseZwischenSaetzenSekunden() : 90);
+        dto.setDefaultPauseZwischenUebungenSekunden(
+                training.getDefaultPauseZwischenUebungenSekunden() != null ? training.getDefaultPauseZwischenUebungenSekunden() : 120);
         dto.setCreatedAt(training.getCreatedAt());
         dto.setUebungen(
                 training.getUebungen() == null
