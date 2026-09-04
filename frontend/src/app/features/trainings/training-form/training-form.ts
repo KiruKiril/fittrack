@@ -6,6 +6,7 @@ import { UebungService } from '../../../core/services/uebung.service';
 import { Uebung } from '../../../core/models/uebung.model';
 import { TrainingUebung } from '../../../core/models/training.model';
 import { extractErrorMessage } from '../../../core/error-message';
+import { PauseDial } from '../../../shared/pause-dial/pause-dial';
 
 interface PlanRow {
   uebungId: number | null;
@@ -19,7 +20,7 @@ interface PlanRow {
 
 @Component({
   selector: 'app-training-form',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, PauseDial],
   templateUrl: './training-form.html',
   styleUrl: './training-form.scss'
 })
@@ -78,6 +79,11 @@ export class TrainingForm {
   }
 
   togglePauseEdit(row: PlanRow): void {
+    if (!row.pauseEditOpen) {
+      // Beim Oeffnen mit dem aktuellen Standard vorbefuellen, statt bei 0 zu starten.
+      if (row.pauseSaetzeOverride === null) row.pauseSaetzeOverride = this.pauseSaetze;
+      if (row.pauseNachUebungOverride === null) row.pauseNachUebungOverride = this.pauseUebungen;
+    }
     row.pauseEditOpen = !row.pauseEditOpen;
   }
 

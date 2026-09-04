@@ -38,15 +38,19 @@
           <h3>Pausen (allgemein)</h3>
           <p class="pause-hint">Gilt für alle Übungen im Plan — kann pro Übung einzeln überschrieben werden.</p>
         </div>
-        <div class="field-row">
-          <div class="field">
-            <label for="pauseSaetze">Zwischen Sätzen (Sek.)</label>
-            <input id="pauseSaetze" type="number" min="0" step="5" [(ngModel)]="pauseSaetze" name="pauseSaetze" />
-          </div>
-          <div class="field">
-            <label for="pauseUebungen">Zwischen Übungen (Sek.)</label>
-            <input id="pauseUebungen" type="number" min="0" step="5" [(ngModel)]="pauseUebungen" name="pauseUebungen" />
-          </div>
+        <div class="dial-row">
+          <app-pause-dial
+            [value]="pauseSaetze"
+            (valueChange)="pauseSaetze = $event"
+            [max]="180"
+            label="Zwischen Sätzen"
+          />
+          <app-pause-dial
+            [value]="pauseUebungen"
+            (valueChange)="pauseUebungen = $event"
+            [max]="300"
+            label="Zwischen Übungen"
+          />
         </div>
       </div>
 
@@ -92,17 +96,21 @@
             }
 
             @if (row.pauseEditOpen) {
-              <div class="pause-edit field-row">
+              <div class="pause-edit dial-row">
                 @if (typOf(row.uebungId) === 'KRAFT') {
-                  <div class="field">
-                    <label>Pause zw. Sätzen (Sek.)</label>
-                    <input type="number" min="0" step="5" [(ngModel)]="row.pauseSaetzeOverride" [name]="'pauseSatz-' + $index" [placeholder]="pauseSaetze + ' (Standard)'" />
-                  </div>
+                  <app-pause-dial
+                    [value]="row.pauseSaetzeOverride ?? pauseSaetze"
+                    (valueChange)="row.pauseSaetzeOverride = $event"
+                    [max]="180"
+                    label="Zw. Sätzen"
+                  />
                 }
-                <div class="field">
-                  <label>Pause nach dieser Übung (Sek.)</label>
-                  <input type="number" min="0" step="5" [(ngModel)]="row.pauseNachUebungOverride" [name]="'pauseUebung-' + $index" [placeholder]="pauseUebungen + ' (Standard)'" />
-                </div>
+                <app-pause-dial
+                  [value]="row.pauseNachUebungOverride ?? pauseUebungen"
+                  (valueChange)="row.pauseNachUebungOverride = $event"
+                  [max]="300"
+                  label="Nach dieser Übung"
+                />
               </div>
             }
 

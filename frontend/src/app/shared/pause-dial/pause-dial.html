@@ -1,0 +1,39 @@
+<div class="dial-wrap">
+  <div class="dial">
+    <svg
+      viewBox="0 0 120 120"
+      class="dial-svg"
+      [class.dragging]="dragging"
+      (pointerdown)="onPointerDown($event)"
+      (pointermove)="onPointerMove($event)"
+      (pointerup)="onPointerUp()"
+      (pointercancel)="onPointerUp()"
+    >
+      <circle class="dial-track" cx="60" cy="60" r="50" />
+      <circle
+        class="dial-fill"
+        cx="60" cy="60" r="50"
+        transform="rotate(-90 60 60)"
+        [attr.stroke-dasharray]="circumference"
+        [attr.stroke-dashoffset]="dashOffset"
+      />
+      <circle class="dial-handle" [attr.cx]="handleX" [attr.cy]="handleY" r="8" />
+    </svg>
+
+    <div class="dial-center">
+      <input
+        class="dial-input tabular"
+        type="number"
+        min="0"
+        [step]="step"
+        [value]="value"
+        (input)="onTypeInput($event)"
+      />
+      <span class="dial-unit">Sek.</span>
+    </div>
+  </div>
+
+  @if (label) {
+    <span class="dial-label">{{ label }}</span>
+  }
+</div>
