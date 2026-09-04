@@ -11,6 +11,7 @@ erDiagram
         long id PK
         long user_id FK
         string name
+        string typ "KRAFT oder AUSDAUER"
         string beschreibung
         int empf_wiederholungen
     }
@@ -27,6 +28,8 @@ erDiagram
         long training_id FK
         long uebung_id FK
         int empf_saetze
+        double empf_distanz_meter
+        int empf_dauer_sekunden
     }
 
     TRAINING_AUSFUEHRUNG {
@@ -51,6 +54,17 @@ erDiagram
         boolean dropset
     }
 
+    AUSDAUER_EINHEIT {
+        long id PK
+        long uebung_session_id FK
+        int dauer_sekunden
+        double distanz_meter
+        int herzfrequenz_durchschnitt
+        int herzfrequenz_max
+        int hoehenmeter
+        string notiz
+    }
+
     USER ||--o{ UEBUNG : "erstellt"
     USER ||--o{ TRAINING : "erstellt"
     USER ||--o{ TRAINING_AUSFUEHRUNG : "fuehrt aus"
@@ -62,3 +76,4 @@ erDiagram
     TRAINING_AUSFUEHRUNG ||--o{ UEBUNG_SESSION : "enthaelt"
     UEBUNG ||--o{ UEBUNG_SESSION : "referenziert"
     UEBUNG_SESSION ||--o{ SATZ : "enthaelt"
+    UEBUNG_SESSION ||--o{ AUSDAUER_EINHEIT : "enthaelt"
