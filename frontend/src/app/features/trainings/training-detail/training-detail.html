@@ -1,0 +1,33 @@
+<div class="page">
+  @if (error()) {
+    <div class="form-error">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <p class="muted">Lädt…</p>
+  } @else if (training(); as t) {
+    <div class="page-header">
+      <div>
+        <h1>{{ t.name }}</h1>
+        @if (t.beschreibung) { <p>{{ t.beschreibung }}</p> }
+      </div>
+      <div class="row">
+        <button class="btn btn-danger" (click)="remove()">Löschen</button>
+        <a class="btn btn-primary" [routerLink]="['/log/neu', t.id]">Training loggen</a>
+      </div>
+    </div>
+
+    <div class="card">
+      @for (u of t.uebungen; track u.id) {
+        <div class="uebung-row">
+          <span class="uebung-row-name">{{ u.uebungName }}</span>
+          <span class="uebung-row-ziel tabular">
+            @if (u.empfSaetze) { {{ u.empfSaetze }} Sätze }
+            @if (u.empfDistanzMeter) { {{ u.empfDistanzMeter / 1000 }} km }
+            @if (u.empfDauerSekunden) { · {{ u.empfDauerSekunden / 60 }} min }
+          </span>
+        </div>
+      }
+    </div>
+  }
+</div>

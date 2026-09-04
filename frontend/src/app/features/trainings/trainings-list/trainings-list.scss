@@ -1,0 +1,24 @@
+.training-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.training-desc {
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+}
+
+.training-uebungen {
+  color: var(--ink-faint);
+  font-size: 0.82rem;
+}
+
+.training-log-cta {
+  margin-top: 4px;
+  text-decoration: none;
+}
+
+.muted { color: var(--ink-soft); font-size: 0.9rem; }

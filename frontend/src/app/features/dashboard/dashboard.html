@@ -1,0 +1,59 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Übersicht</h1>
+      <p>Dein Trainingsstand auf einen Blick.</p>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="card card-pad stat">
+      <span class="stat-value tabular">{{ uebungenCount() }}</span>
+      <span class="stat-label">Übungen</span>
+    </div>
+    <div class="card card-pad stat">
+      <span class="stat-value tabular">{{ trainings().length }}</span>
+      <span class="stat-label">Trainingspläne</span>
+    </div>
+    <div class="card card-pad stat">
+      <span class="stat-value tabular">{{ recentLogs().length }}</span>
+      <span class="stat-label">Zuletzt geloggt</span>
+    </div>
+  </div>
+
+  <div class="quick-actions">
+    <a class="btn btn-primary" routerLink="/uebungen">+ Übung anlegen</a>
+    <a class="btn btn-secondary" routerLink="/trainings/neu">+ Trainingsplan anlegen</a>
+    <a class="btn btn-secondary" routerLink="/trainings">Training loggen</a>
+  </div>
+
+  <section class="stack">
+    <h2>Letzte Einheiten</h2>
+
+    @if (loading()) {
+      <p class="muted">Lädt…</p>
+    } @else if (recentLogs().length === 0) {
+      <div class="empty-state">
+        <p>Noch keine Trainings geloggt.</p>
+        <a class="btn btn-primary btn-sm" routerLink="/trainings">Erstes Training loggen</a>
+      </div>
+    } @else {
+      <div class="card">
+        @for (log of recentLogs(); track log.id) {
+          <a class="log-row" [routerLink]="['/log', log.id]">
+            <div class="log-row-main">
+              <span class="log-row-title">{{ log.trainingName }}</span>
+              <span class="log-row-meta">{{ log.ort || 'Kein Ort' }} · {{ log.createdAt | date: 'dd.MM.yyyy, HH:mm' }}</span>
+            </div>
+            <span class="badge"
+              [class.badge-kraft]="sessionTypLabel(log) === 'Kraft'"
+              [class.badge-ausdauer]="sessionTypLabel(log) === 'Ausdauer'"
+              [class.badge-mixed]="sessionTypLabel(log) === 'Kraft + Ausdauer'">
+              {{ sessionTypLabel(log) }}
+            </span>
+          </a>
+        }
+      </div>
+    }
+  </section>
+</div>

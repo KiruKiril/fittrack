@@ -1,0 +1,59 @@
+<div class="page">
+  @if (error()) {
+    <div class="form-error">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <p class="muted">Lädt…</p>
+  } @else if (log(); as l) {
+    <div class="page-header">
+      <div>
+        <h1>{{ l.trainingName }}</h1>
+        <p>{{ l.ort || 'Kein Ort' }} · {{ l.createdAt | date: 'dd.MM.yyyy, HH:mm' }}</p>
+      </div>
+      <div class="row">
+        <button class="btn btn-danger" (click)="remove()">Löschen</button>
+        <a class="btn btn-secondary" routerLink="/log">Zurück zum Verlauf</a>
+      </div>
+    </div>
+
+    <div class="stack">
+      @for (session of l.uebungSessions; track session.id) {
+        <div class="card card-pad">
+          <div class="row-between">
+            <h3>{{ session.uebungName }}</h3>
+            <span class="badge" [class.badge-kraft]="session.saetze.length > 0" [class.badge-ausdauer]="session.ausdauerEinheiten.length > 0">
+              {{ session.saetze.length > 0 ? 'Kraft' : 'Ausdauer' }}
+            </span>
+          </div>
+
+          @if (session.saetze.length > 0) {
+            <div class="satz-list">
+              @for (satz of session.saetze; track satz.id) {
+                <div class="satz-chip tabular">
+                  {{ satz.wiederholungen }} × {{ satz.gewicht }} kg
+                  @if (satz.dropset) { <span class="dropset-tag">Dropset</span> }
+                </div>
+              }
+            </div>
+          }
+
+          @if (session.ausdauerEinheiten.length > 0) {
+            <div class="stack">
+              @for (e of session.ausdauerEinheiten; track e.id) {
+                <div class="ausdauer-summary tabular">
+                  <span>{{ e.distanzMeter / 1000 }} km</span>
+                  <span>{{ e.dauerSekunden / 60 }} min</span>
+                  @if (e.herzfrequenzDurchschnitt) { <span>Ø {{ e.herzfrequenzDurchschnitt }} bpm</span> }
+                  @if (e.herzfrequenzMax) { <span>Max {{ e.herzfrequenzMax }} bpm</span> }
+                  @if (e.hoehenmeter) { <span>{{ e.hoehenmeter }} Hm</span> }
+                  @if (e.notiz) { <span class="ausdauer-notiz">{{ e.notiz }}</span> }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,68 @@
+.session-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.session-ziel {
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  margin-top: 2px;
+}
+
+.satz-table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.satz-head,
+.satz-row {
+  display: grid;
+  grid-template-columns: 32px 1fr 1fr 60px 70px;
+  align-items: center;
+  gap: 10px;
+}
+
+.satz-head {
+  color: var(--ink-faint);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.satz-index {
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+.satz-row input[type='number'] {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  width: 100%;
+}
+
+.satz-row input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  justify-self: center;
+}
+
+.ausdauer-block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.muted { color: var(--ink-soft); font-size: 0.9rem; }
+
+@media (max-width: 600px) {
+  .satz-head { display: none; }
+  .satz-row {
+    grid-template-columns: 24px 1fr 1fr 44px 1fr;
+  }
+}

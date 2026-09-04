@@ -1,0 +1,15 @@
+.uebung-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.uebung-row:last-child { border-bottom: none; }
+
+.uebung-row-name { font-weight: 600; }
+.uebung-row-ziel { color: var(--ink-soft); font-size: 0.85rem; }
+
+.muted { color: var(--ink-soft); font-size: 0.9rem; }

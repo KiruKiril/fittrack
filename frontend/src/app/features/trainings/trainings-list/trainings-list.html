@@ -1,0 +1,36 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Trainings</h1>
+      <p>Deine Trainingspläne — leg fest, was trainiert wird.</p>
+    </div>
+    <a class="btn btn-primary" routerLink="/trainings/neu">+ Trainingsplan anlegen</a>
+  </div>
+
+  @if (error()) {
+    <div class="form-error">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <p class="muted">Lädt…</p>
+  } @else if (trainings().length === 0) {
+    <div class="empty-state">
+      <p>Noch keine Trainingspläne angelegt.</p>
+      <a class="btn btn-primary btn-sm" routerLink="/trainings/neu">Ersten Plan anlegen</a>
+    </div>
+  } @else {
+    <div class="grid-cards">
+      @for (t of trainings(); track t.id) {
+        <a class="card card-pad training-card" [routerLink]="['/trainings', t.id]">
+          <div class="row-between">
+            <h3>{{ t.name }}</h3>
+            <button class="btn btn-danger btn-sm" (click)="remove(t, $event)">Löschen</button>
+          </div>
+          @if (t.beschreibung) { <p class="training-desc">{{ t.beschreibung }}</p> }
+          <p class="training-uebungen">{{ typenLabel(t) }}</p>
+          <span class="link-btn training-log-cta">Training loggen →</span>
+        </a>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,33 @@
+.muted { color: var(--ink-soft); font-size: 0.9rem; }
+
+.log-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  text-decoration: none;
+  color: inherit;
+  border-bottom: 1px solid var(--line);
+  transition: background-color 0.12s ease;
+}
+
+.log-row:last-child { border-bottom: none; }
+.log-row:hover { background: var(--surface-sunken); }
+
+.log-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.log-row-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.log-row-meta {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}

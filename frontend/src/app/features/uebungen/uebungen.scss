@@ -1,0 +1,17 @@
+.uebung-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.uebung-desc {
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+}
+
+.uebung-meta {
+  color: var(--ink-faint);
+  font-size: 0.8rem;
+}
+
+.muted { color: var(--ink-soft); font-size: 0.9rem; }

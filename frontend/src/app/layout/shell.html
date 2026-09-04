@@ -1,0 +1,26 @@
+<div class="shell">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" routerLink="/dashboard">
+        <span class="brand-mark">FT</span>
+        <span class="brand-name">fittrack</span>
+      </a>
+
+      <nav class="nav">
+        <a routerLink="/dashboard" routerLinkActive="active">Übersicht</a>
+        <a routerLink="/uebungen" routerLinkActive="active">Übungen</a>
+        <a routerLink="/trainings" routerLinkActive="active">Trainings</a>
+        <a routerLink="/log" routerLinkActive="active">Verlauf</a>
+      </nav>
+
+      <div class="user">
+        <span class="username">{{ username }}</span>
+        <button class="btn btn-secondary btn-sm" (click)="logout()">Abmelden</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="content">
+    <router-outlet />
+  </main>
+</div>

@@ -1,0 +1,95 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Übungen</h1>
+      <p>Deine Übungsdefinitionen — Kraft oder Ausdauer.</p>
+    </div>
+    <button class="btn btn-primary" (click)="toggleForm()">
+      {{ formOpen() ? 'Abbrechen' : '+ Übung anlegen' }}
+    </button>
+  </div>
+
+  @if (error()) {
+    <div class="form-error">{{ error() }}</div>
+  }
+
+  @if (formOpen()) {
+    <form class="card card-pad stack" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="field-row">
+        <div class="field">
+          <label for="name">Name</label>
+          <input id="name" type="text" formControlName="name" placeholder="z.B. Kniebeuge" />
+        </div>
+
+        <div class="field">
+          <label for="typ">Typ</label>
+          <select id="typ" formControlName="typ">
+            <option value="KRAFT">Kraft</option>
+            <option value="AUSDAUER">Ausdauer</option>
+          </select>
+        </div>
+
+        @if (form.value.typ === 'KRAFT') {
+          <div class="field">
+            <label for="reps">Empf. Wiederholungen</label>
+            <input id="reps" type="number" min="1" formControlName="empfWiederholungen" />
+          </div>
+        }
+      </div>
+
+      <div class="field">
+        <label for="beschreibung">Beschreibung</label>
+        <input id="beschreibung" type="text" formControlName="beschreibung" placeholder="optional" />
+      </div>
+
+      <button class="btn btn-primary" type="submit" [disabled]="saving()">
+        {{ saving() ? 'Speichert…' : 'Übung speichern' }}
+      </button>
+    </form>
+  }
+
+  @if (loading()) {
+    <p class="muted">Lädt…</p>
+  } @else {
+    <section class="stack">
+      <h2>Kraft</h2>
+      @if (kraftUebungen().length === 0) {
+        <div class="empty-state"><p>Noch keine Kraftübungen angelegt.</p></div>
+      } @else {
+        <div class="grid-cards">
+          @for (u of kraftUebungen(); track u.id) {
+            <div class="card card-pad uebung-card">
+              <div class="row-between">
+                <span class="badge badge-kraft"><span class="badge-dot"></span>Kraft</span>
+                <button class="btn btn-danger btn-sm" (click)="remove(u)">Löschen</button>
+              </div>
+              <h3>{{ u.name }}</h3>
+              @if (u.beschreibung) { <p class="uebung-desc">{{ u.beschreibung }}</p> }
+              <p class="uebung-meta tabular">Ziel: {{ u.empfWiederholungen }} Wdh.</p>
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="stack">
+      <h2>Ausdauer</h2>
+      @if (ausdauerUebungen().length === 0) {
+        <div class="empty-state"><p>Noch keine Ausdauerübungen angelegt.</p></div>
+      } @else {
+        <div class="grid-cards">
+          @for (u of ausdauerUebungen(); track u.id) {
+            <div class="card card-pad uebung-card">
+              <div class="row-between">
+                <span class="badge badge-ausdauer"><span class="badge-dot"></span>Ausdauer</span>
+                <button class="btn btn-danger btn-sm" (click)="remove(u)">Löschen</button>
+              </div>
+              <h3>{{ u.name }}</h3>
+              @if (u.beschreibung) { <p class="uebung-desc">{{ u.beschreibung }}</p> }
+            </div>
+          }
+        </div>
+      }
+    </section>
+  }
+</div>

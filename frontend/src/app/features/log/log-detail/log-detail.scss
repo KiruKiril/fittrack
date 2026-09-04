@@ -1,0 +1,45 @@
+.muted { color: var(--ink-soft); font-size: 0.9rem; }
+
+.satz-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.satz-chip {
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dropset-tag {
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--brass-ink);
+  background: var(--brass-bg);
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+.ausdauer-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+
+.ausdauer-notiz {
+  color: var(--ink-soft);
+  font-family: var(--font-ui);
+  font-style: italic;
+}

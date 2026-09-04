@@ -1,0 +1,31 @@
+<div class="auth-page">
+  <div class="auth-card card card-pad">
+    <div class="auth-brand">
+      <span class="brand-mark">FT</span>
+      <h1>fittrack</h1>
+    </div>
+    <p class="auth-sub">Melde dich an, um dein Training zu loggen.</p>
+
+    <form class="stack" [formGroup]="form" (ngSubmit)="submit()">
+      @if (error()) {
+        <div class="form-error">{{ error() }}</div>
+      }
+
+      <div class="field">
+        <label for="username">Benutzername</label>
+        <input id="username" type="text" formControlName="username" autocomplete="username" />
+      </div>
+
+      <div class="field">
+        <label for="password">Passwort</label>
+        <input id="password" type="password" formControlName="password" autocomplete="current-password" />
+      </div>
+
+      <button class="btn btn-primary btn-block" type="submit" [disabled]="loading()">
+        {{ loading() ? 'Anmelden…' : 'Anmelden' }}
+      </button>
+    </form>
+
+    <p class="auth-switch">Noch kein Konto? <a routerLink="/register">Registrieren</a></p>
+  </div>
+</div>

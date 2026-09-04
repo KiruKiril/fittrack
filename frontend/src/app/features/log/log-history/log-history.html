@@ -1,0 +1,38 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Verlauf</h1>
+      <p>Alle geloggten Trainings.</p>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="form-error">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <p class="muted">Lädt…</p>
+  } @else if (logs().length === 0) {
+    <div class="empty-state">
+      <p>Noch keine Trainings geloggt.</p>
+      <a class="btn btn-primary btn-sm" routerLink="/trainings">Zu den Trainingsplänen</a>
+    </div>
+  } @else {
+    <div class="card">
+      @for (log of logs(); track log.id) {
+        <a class="log-row" [routerLink]="['/log', log.id]">
+          <div class="log-row-main">
+            <span class="log-row-title">{{ log.trainingName }}</span>
+            <span class="log-row-meta">{{ log.ort || 'Kein Ort' }} · {{ log.createdAt | date: 'dd.MM.yyyy, HH:mm' }}</span>
+          </div>
+          <span class="badge"
+            [class.badge-kraft]="typLabel(log) === 'Kraft'"
+            [class.badge-ausdauer]="typLabel(log) === 'Ausdauer'"
+            [class.badge-mixed]="typLabel(log) === 'Kraft + Ausdauer'">
+            {{ typLabel(log) }}
+          </span>
+        </a>
+      }
+    </div>
+  }
+</div>
