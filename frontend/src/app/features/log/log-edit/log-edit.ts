@@ -22,7 +22,8 @@ interface AusdauerRow {
 }
 
 interface SessionRow {
-  uebungId: number;
+  /** null, wenn die Uebung inzwischen geloescht wurde - dieser Eintrag ist dann nur lesbar. */
+  uebungId: number | null;
   uebungName: string;
   typ: UebungTyp;
   saetze: SatzRow[];
@@ -45,6 +46,8 @@ export class LogEdit {
   trainingName = '';
   ort = '';
   sessions = signal<SessionRow[]>([]);
+  /** Namen von Uebungen dieses Eintrags, die inzwischen geloescht wurden - Bearbeiten ist dann gesperrt. */
+  geloeschteUebungen = signal<string[]>([]);
 
   loading = signal(true);
   saving = signal(false);
@@ -74,6 +77,9 @@ export class LogEdit {
               notiz: e.notiz ?? ''
             }))
           }))
+        );
+        this.geloeschteUebungen.set(
+          log.uebungSessions.filter((s) => s.uebungId === null).map((s) => s.uebungName ?? 'Unbekannt')
         );
         this.loading.set(false);
       },
@@ -106,9 +112,16 @@ export class LogEdit {
   submit(): void {
     this.error.set(null);
 
+    if (this.geloeschteUebungen().length > 0) {
+      this.error.set(
+        `Enthält bereits gelöschte Übungen (${this.geloeschteUebungen().join(', ')}) und kann daher nicht bearbeitet werden.`
+      );
+      return;
+    }
+
     const uebungSessions = this.sessions()
       .map((s) => ({
-        uebungId: s.uebungId,
+        uebungId: s.uebungId as number,
         saetze: s.typ === 'KRAFT'
           ? s.saetze
               .filter((r) => r.wiederholungen !== null || r.gewicht !== null || r.dropset)

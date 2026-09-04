@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface UebungSessionRepository extends JpaRepository<UebungSession, Long> {
     List<UebungSession> findByTrainingAusfuehrungId(Long trainingAusfuehrungId);
+
+    List<UebungSession> findByUebungId(Long uebungId);
 }

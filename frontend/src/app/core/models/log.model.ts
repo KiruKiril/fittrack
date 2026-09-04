@@ -17,7 +17,8 @@ export interface AusdauerEinheit {
 
 export interface UebungSession {
   id?: number;
-  uebungId: number;
+  /** null, wenn die Uebung inzwischen geloescht wurde - uebungName bleibt als Snapshot erhalten. */
+  uebungId: number | null;
   uebungName?: string;
   uebungTyp?: 'KRAFT' | 'AUSDAUER';
   saetze: Satz[];
@@ -26,7 +27,8 @@ export interface UebungSession {
 
 export interface TrainingAusfuehrung {
   id?: number;
-  trainingId: number;
+  /** null, wenn der Trainingsplan inzwischen geloescht wurde - trainingName bleibt als Snapshot erhalten. */
+  trainingId: number | null;
   trainingName?: string;
   ort?: string | null;
   dauerSekunden?: number | null;

@@ -11,6 +11,12 @@
     <div class="form-error">{{ error() }}</div>
   }
 
+  @if (!loading() && geloeschteUebungen().length > 0) {
+    <div class="form-error">
+      Dieser Eintrag enthält bereits gelöschte Übungen ({{ geloeschteUebungen().join(', ') }}) und kann daher nicht mehr bearbeitet werden.
+    </div>
+  }
+
   @if (loading()) {
     <p class="muted">Lädt…</p>
   } @else {
@@ -22,7 +28,7 @@
         </div>
       </div>
 
-      @for (session of sessions(); track session.uebungId) {
+      @for (session of sessions(); track $index) {
         <div class="card card-pad session-card">
           <div class="row-between">
             <h3>{{ session.uebungName }}</h3>
@@ -92,7 +98,7 @@
         </div>
       }
 
-      <button class="btn btn-primary" type="submit" [disabled]="saving()">
+      <button class="btn btn-primary" type="submit" [disabled]="saving() || geloeschteUebungen().length > 0">
         {{ saving() ? 'Speichert…' : 'Änderungen speichern' }}
       </button>
     </form>

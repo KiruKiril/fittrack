@@ -21,8 +21,8 @@ public class TrainingAusfuehrungResponse {
     public static TrainingAusfuehrungResponse from(TrainingAusfuehrung trainingAusfuehrung) {
         TrainingAusfuehrungResponse dto = new TrainingAusfuehrungResponse();
         dto.setId(trainingAusfuehrung.getId());
-        dto.setTrainingId(trainingAusfuehrung.getTraining().getId());
-        dto.setTrainingName(trainingAusfuehrung.getTraining().getName());
+        dto.setTrainingId(trainingAusfuehrung.getTraining() != null ? trainingAusfuehrung.getTraining().getId() : null);
+        dto.setTrainingName(trainingAusfuehrung.getTrainingName());
         dto.setOrt(trainingAusfuehrung.getOrt());
         dto.setDauerSekunden(trainingAusfuehrung.getDauerSekunden());
         dto.setCreatedAt(trainingAusfuehrung.getCreatedAt());

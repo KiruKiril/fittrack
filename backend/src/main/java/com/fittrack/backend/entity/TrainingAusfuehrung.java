@@ -19,9 +19,13 @@ public class TrainingAusfuehrung {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /** null, wenn der Trainingsplan inzwischen geloescht wurde - der Name bleibt im Snapshot-Feld erhalten. */
     @ManyToOne
-    @JoinColumn(name = "training_id", nullable = false)
+    @JoinColumn(name = "training_id")
     private Training training;
+
+    /** Snapshot des Trainingsnamens zum Zeitpunkt der Erfassung, ueberlebt eine spaetere Loeschung des Trainings. */
+    private String trainingName;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)

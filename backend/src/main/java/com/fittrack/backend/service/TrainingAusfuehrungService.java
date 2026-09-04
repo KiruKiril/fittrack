@@ -72,6 +72,7 @@ public class TrainingAusfuehrungService {
 
         TrainingAusfuehrung trainingAusfuehrung = new TrainingAusfuehrung();
         trainingAusfuehrung.setTraining(training);
+        trainingAusfuehrung.setTrainingName(training.getName());
         trainingAusfuehrung.setUser(user);
         trainingAusfuehrung.setOrt(request.getOrt());
         trainingAusfuehrung.setDauerSekunden(request.getDauerSekunden());
@@ -130,6 +131,8 @@ public class TrainingAusfuehrungService {
             UebungSession uebungSession = new UebungSession();
             uebungSession.setTrainingAusfuehrung(trainingAusfuehrung);
             uebungSession.setUebung(uebung);
+            uebungSession.setUebungName(uebung.getName());
+            uebungSession.setUebungTyp(uebung.getTyp());
             uebungSession.setSaetze(buildSaetze(uebungSession, item.getSaetze()));
             uebungSession.setAusdauerEinheiten(buildAusdauerEinheiten(uebungSession, item.getAusdauerEinheiten()));
             result.add(uebungSession);

@@ -22,9 +22,16 @@ public class UebungSession {
     @JoinColumn(name = "training_ausfuehrung_id", nullable = false)
     private TrainingAusfuehrung trainingAusfuehrung;
 
+    /** null, wenn die Uebung inzwischen geloescht wurde - Name/Typ bleiben in den Snapshot-Feldern erhalten. */
     @ManyToOne
-    @JoinColumn(name = "uebung_id", nullable = false)
+    @JoinColumn(name = "uebung_id")
     private Uebung uebung;
+
+    /** Snapshot des Uebungsnamens zum Zeitpunkt der Erfassung, ueberlebt eine spaetere Loeschung der Uebung. */
+    private String uebungName;
+
+    @Enumerated(EnumType.STRING)
+    private UebungTyp uebungTyp;
 
     @OneToMany(mappedBy = "uebungSession", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Satz> saetze;

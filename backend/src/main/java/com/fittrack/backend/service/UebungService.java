@@ -4,12 +4,14 @@ import com.fittrack.backend.dto.UebungRequest;
 import com.fittrack.backend.entity.Training;
 import com.fittrack.backend.entity.TrainingUebung;
 import com.fittrack.backend.entity.Uebung;
+import com.fittrack.backend.entity.UebungSession;
 import com.fittrack.backend.entity.UebungTyp;
 import com.fittrack.backend.entity.UebungZuweisung;
 import com.fittrack.backend.entity.User;
 import com.fittrack.backend.repository.TrainingRepository;
 import com.fittrack.backend.repository.TrainingZuweisungRepository;
 import com.fittrack.backend.repository.UebungRepository;
+import com.fittrack.backend.repository.UebungSessionRepository;
 import com.fittrack.backend.repository.UebungZuweisungRepository;
 import com.fittrack.backend.repository.UserRepository;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -27,17 +29,20 @@ public class UebungService {
 
     private final UebungRepository uebungRepository;
     private final UebungZuweisungRepository uebungZuweisungRepository;
+    private final UebungSessionRepository uebungSessionRepository;
     private final TrainingRepository trainingRepository;
     private final TrainingZuweisungRepository trainingZuweisungRepository;
     private final UserRepository userRepository;
 
     public UebungService(UebungRepository uebungRepository,
                           UebungZuweisungRepository uebungZuweisungRepository,
+                          UebungSessionRepository uebungSessionRepository,
                           TrainingRepository trainingRepository,
                           TrainingZuweisungRepository trainingZuweisungRepository,
                           UserRepository userRepository) {
         this.uebungRepository = uebungRepository;
         this.uebungZuweisungRepository = uebungZuweisungRepository;
+        this.uebungSessionRepository = uebungSessionRepository;
         this.trainingRepository = trainingRepository;
         this.trainingZuweisungRepository = trainingZuweisungRepository;
         this.userRepository = userRepository;
@@ -121,6 +126,12 @@ public class UebungService {
         if (!uebung.getUser().getId().equals(user.getId())) {
             throw new RuntimeException("Not authorized to delete this uebung");
         }
+
+        // Bereits geloggte Saetze/Einheiten sollen erhalten bleiben, auch wenn die Uebung geloescht wird -
+        // Name und Typ wurden beim Loggen bereits als Snapshot mitgespeichert.
+        List<UebungSession> protokollierteSessions = uebungSessionRepository.findByUebungId(id);
+        protokollierteSessions.forEach(session -> session.setUebung(null));
+        uebungSessionRepository.saveAll(protokollierteSessions);
 
         uebungRepository.deleteById(id);
     }

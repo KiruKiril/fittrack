@@ -20,9 +20,9 @@ public class UebungSessionResponse {
     public static UebungSessionResponse from(UebungSession uebungSession) {
         UebungSessionResponse dto = new UebungSessionResponse();
         dto.setId(uebungSession.getId());
-        dto.setUebungId(uebungSession.getUebung().getId());
-        dto.setUebungName(uebungSession.getUebung().getName());
-        dto.setUebungTyp(uebungSession.getUebung().getTyp());
+        dto.setUebungId(uebungSession.getUebung() != null ? uebungSession.getUebung().getId() : null);
+        dto.setUebungName(uebungSession.getUebungName());
+        dto.setUebungTyp(uebungSession.getUebungTyp());
         dto.setSaetze(
                 uebungSession.getSaetze() == null
                         ? Collections.emptyList()

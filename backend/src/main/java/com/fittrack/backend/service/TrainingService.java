@@ -3,11 +3,13 @@ package com.fittrack.backend.service;
 import com.fittrack.backend.dto.TrainingRequest;
 import com.fittrack.backend.dto.TrainingUebungRequest;
 import com.fittrack.backend.entity.Training;
+import com.fittrack.backend.entity.TrainingAusfuehrung;
 import com.fittrack.backend.entity.TrainingUebung;
 import com.fittrack.backend.entity.TrainingZuweisung;
 import com.fittrack.backend.entity.Uebung;
 import com.fittrack.backend.entity.UebungZuweisung;
 import com.fittrack.backend.entity.User;
+import com.fittrack.backend.repository.TrainingAusfuehrungRepository;
 import com.fittrack.backend.repository.TrainingRepository;
 import com.fittrack.backend.repository.TrainingZuweisungRepository;
 import com.fittrack.backend.repository.UebungRepository;
@@ -26,17 +28,20 @@ public class TrainingService {
 
     private final TrainingRepository trainingRepository;
     private final TrainingZuweisungRepository trainingZuweisungRepository;
+    private final TrainingAusfuehrungRepository trainingAusfuehrungRepository;
     private final UebungRepository uebungRepository;
     private final UebungZuweisungRepository uebungZuweisungRepository;
     private final UserRepository userRepository;
 
     public TrainingService(TrainingRepository trainingRepository,
                             TrainingZuweisungRepository trainingZuweisungRepository,
+                            TrainingAusfuehrungRepository trainingAusfuehrungRepository,
                             UebungRepository uebungRepository,
                             UebungZuweisungRepository uebungZuweisungRepository,
                             UserRepository userRepository) {
         this.trainingRepository = trainingRepository;
         this.trainingZuweisungRepository = trainingZuweisungRepository;
+        this.trainingAusfuehrungRepository = trainingAusfuehrungRepository;
         this.uebungRepository = uebungRepository;
         this.uebungZuweisungRepository = uebungZuweisungRepository;
         this.userRepository = userRepository;
@@ -142,6 +147,12 @@ public class TrainingService {
             trainingZuweisungRepository.deleteByUserIdAndTrainingId(user.getId(), id);
             return;
         }
+
+        // Bereits geloggte Einheiten sollen erhalten bleiben, auch wenn der Plan geloescht wird -
+        // der Trainingsname wurde beim Loggen bereits als Snapshot mitgespeichert.
+        List<TrainingAusfuehrung> protokollierteEinheiten = trainingAusfuehrungRepository.findByTrainingId(id);
+        protokollierteEinheiten.forEach(ta -> ta.setTraining(null));
+        trainingAusfuehrungRepository.saveAll(protokollierteEinheiten);
 
         trainingRepository.delete(training);
     }
