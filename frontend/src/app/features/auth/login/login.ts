@@ -26,6 +26,7 @@ export class Login {
   submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.error.set('Bitte Benutzername und Passwort angeben.');
       return;
     }
 

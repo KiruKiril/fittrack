@@ -6,17 +6,17 @@
     </div>
     <p class="auth-sub">Melde dich an, um dein Training zu loggen.</p>
 
-    <form class="stack" [formGroup]="form" (ngSubmit)="submit()">
+    <form class="stack" [formGroup]="form" (ngSubmit)="submit()" novalidate>
       @if (error()) {
         <div class="form-error">{{ error() }}</div>
       }
 
-      <div class="field">
+      <div class="field" [class.invalid]="form.controls.username.invalid && form.controls.username.touched">
         <label for="username">Benutzername</label>
         <input id="username" type="text" formControlName="username" autocomplete="username" />
       </div>
 
-      <div class="field">
+      <div class="field" [class.invalid]="form.controls.password.invalid && form.controls.password.touched">
         <label for="password">Passwort</label>
         <input id="password" type="password" formControlName="password" autocomplete="current-password" />
       </div>

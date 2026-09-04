@@ -14,11 +14,14 @@
   }
 
   @if (formOpen()) {
-    <form class="card card-pad stack" [formGroup]="form" (ngSubmit)="submit()">
+    <form class="card card-pad stack" [formGroup]="form" (ngSubmit)="submit()" novalidate>
       <div class="field-row">
-        <div class="field">
+        <div class="field" [class.invalid]="form.controls.name.invalid && form.controls.name.touched">
           <label for="name">Name</label>
           <input id="name" type="text" formControlName="name" placeholder="z.B. Kniebeuge" />
+          @if (form.controls.name.invalid && form.controls.name.touched) {
+            <span class="field-error">Pflichtfeld.</span>
+          }
         </div>
 
         <div class="field">

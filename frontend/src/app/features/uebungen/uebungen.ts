@@ -61,6 +61,7 @@ export class Uebungen {
   submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.error.set('Bitte einen Namen für die Übung angeben.');
       return;
     }
 

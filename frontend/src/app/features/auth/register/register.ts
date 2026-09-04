@@ -27,6 +27,7 @@ export class Register {
   submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.error.set('Bitte überprüfe deine Eingaben — Passwort braucht mindestens 6 Zeichen.');
       return;
     }
 
