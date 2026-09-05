@@ -1,0 +1,69 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Splits</h1>
+      <p>Deine Trainings-Splits — mehrere Trainings in fester Reihenfolge.</p>
+    </div>
+    <div class="row">
+      <button class="btn btn-secondary" (click)="toggleBibliothek()">
+        {{ bibliothekOpen() ? 'Bibliothek schließen' : '+ Aus Bibliothek hinzufügen' }}
+      </button>
+      <a class="btn btn-primary" routerLink="/splits/neu">+ Split anlegen</a>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="form-error">{{ error() }}</div>
+  }
+
+  @if (bibliothekOpen()) {
+    <section class="card card-pad stack bibliothek-panel">
+      <h2>Bibliothek</h2>
+      <p class="muted">Von fittrack bereitgestellte Splits — übernimm sie als eigene, frei anpassbare Kopie.</p>
+      @if (bibliothekLoading()) {
+        <p class="muted">Lädt…</p>
+      } @else if (bibliothek().length === 0) {
+        <p class="muted">Du hast bereits alle Bibliotheks-Splits übernommen.</p>
+      } @else {
+        <div class="bibliothek-list">
+          @for (s of bibliothek(); track s.id) {
+            <div class="bibliothek-row">
+              <div>
+                <span class="bibliothek-row-name">{{ s.name }}</span>
+                <p class="split-trainings">{{ trainingsLabel(s) }}</p>
+              </div>
+              <button class="btn btn-secondary btn-sm" [disabled]="addingId() === s.id" (click)="addFromBibliothek(s, $event)">
+                {{ addingId() === s.id ? 'Übernimmt…' : '+ Übernehmen' }}
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </section>
+  }
+
+  @if (loading()) {
+    <p class="muted">Lädt…</p>
+  } @else if (splits().length === 0) {
+    <div class="empty-state">
+      <p>Noch keine Splits angelegt.</p>
+      <a class="btn btn-primary btn-sm" routerLink="/splits/neu">Ersten Split anlegen</a>
+    </div>
+  } @else {
+    <div class="grid-cards">
+      @for (s of splits(); track s.id) {
+        <a class="card card-pad split-card" [routerLink]="['/splits', s.id]">
+          <div class="row-between">
+            <h3>{{ s.name }}</h3>
+            <button class="btn btn-danger btn-sm" (click)="remove(s, $event)">Löschen</button>
+          </div>
+          @if (s.beschreibung) { <p class="split-desc">{{ s.beschreibung }}</p> }
+          <p class="split-trainings">{{ trainingsLabel(s) }}</p>
+          @if (s.naechstesTraining) {
+            <span class="split-next">Als Nächstes: {{ s.naechstesTraining.trainingName }}</span>
+          }
+        </a>
+      }
+    </div>
+  }
+</div>

@@ -42,6 +42,18 @@ export const routes: Routes = [
         loadComponent: () => import('./features/trainings/training-detail/training-detail').then((m) => m.TrainingDetail)
       },
       {
+        path: 'splits',
+        loadComponent: () => import('./features/splits/splits-list/splits-list').then((m) => m.SplitsList)
+      },
+      {
+        path: 'splits/neu',
+        loadComponent: () => import('./features/splits/split-form/split-form').then((m) => m.SplitForm)
+      },
+      {
+        path: 'splits/:id',
+        loadComponent: () => import('./features/splits/split-detail/split-detail').then((m) => m.SplitDetail)
+      },
+      {
         path: 'log',
         loadComponent: () => import('./features/log/log-history/log-history').then((m) => m.LogHistory)
       },

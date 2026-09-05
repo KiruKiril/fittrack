@@ -1,0 +1,86 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Split anlegen</h1>
+      <p>Welche Trainings gehören dazu, in welcher Reihenfolge?</p>
+    </div>
+    <a class="btn btn-secondary" routerLink="/splits">Abbrechen</a>
+  </div>
+
+  @if (error()) {
+    <div class="form-error">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <p class="muted">Lädt…</p>
+  } @else if (trainings().length === 0) {
+    <div class="empty-state">
+      <p>Du brauchst zuerst mindestens einen Trainingsplan.</p>
+      <a class="btn btn-primary btn-sm" routerLink="/trainings/neu">Trainingsplan anlegen</a>
+    </div>
+  } @else {
+    <form class="stack" (ngSubmit)="submit()">
+      <div class="card card-pad stack">
+        <div class="field-row">
+          <div class="field">
+            <label for="name">Name</label>
+            <input id="name" type="text" [(ngModel)]="name" name="name" placeholder="z.B. Push/Pull/Legs" />
+          </div>
+          <div class="field">
+            <label for="beschreibung">Beschreibung</label>
+            <input id="beschreibung" type="text" [(ngModel)]="beschreibung" name="beschreibung" placeholder="optional" />
+          </div>
+        </div>
+      </div>
+
+      <div class="stack">
+        <div>
+          <h2>Trainings im Split</h2>
+          <p class="split-hint">Reihenfolge per Pfeil anpassen. Wochentag ist optional — ohne feste Tage läuft der Split einfach der Reihe nach durch.</p>
+        </div>
+
+        @for (row of rows; track $index) {
+          <div class="card card-pad plan-row">
+            <div class="row-between">
+              <span class="plan-row-index tabular">{{ $index + 1 }}.</span>
+              <div class="row">
+                <button type="button" class="link-btn" [disabled]="$index === 0" (click)="moveUp($index)">↑</button>
+                <button type="button" class="link-btn" [disabled]="$index === rows.length - 1" (click)="moveDown($index)">↓</button>
+              </div>
+            </div>
+            <div class="field-row plan-row-fields">
+              <div class="field">
+                <label>Training</label>
+                <select [(ngModel)]="row.trainingId" [name]="'training-' + $index">
+                  <option [ngValue]="null">— auswählen —</option>
+                  @for (t of trainings(); track t.id) {
+                    <option [ngValue]="t.id">{{ t.name }}</option>
+                  }
+                </select>
+              </div>
+              <div class="field">
+                <label>Wochentag (optional)</label>
+                <select [(ngModel)]="row.wochentag" [name]="'wochentag-' + $index">
+                  <option value="">— kein fester Tag —</option>
+                  @for (w of wochentage; track w.value) {
+                    <option [value]="w.value">{{ w.label }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+
+            @if (rows.length > 1) {
+              <button type="button" class="btn btn-danger btn-sm plan-row-remove" (click)="removeRow($index)">Entfernen</button>
+            }
+          </div>
+        }
+
+        <button type="button" class="btn btn-secondary" (click)="addRow()">+ Training hinzufügen</button>
+      </div>
+
+      <button class="btn btn-primary" type="submit" [disabled]="saving()">
+        {{ saving() ? 'Speichert…' : 'Split speichern' }}
+      </button>
+    </form>
+  }
+</div>

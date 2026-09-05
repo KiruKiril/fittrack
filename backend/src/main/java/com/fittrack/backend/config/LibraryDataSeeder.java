@@ -1,9 +1,12 @@
 package com.fittrack.backend.config;
 
+import com.fittrack.backend.entity.Split;
+import com.fittrack.backend.entity.SplitTraining;
 import com.fittrack.backend.entity.Training;
 import com.fittrack.backend.entity.TrainingUebung;
 import com.fittrack.backend.entity.Uebung;
 import com.fittrack.backend.entity.UebungTyp;
+import com.fittrack.backend.repository.SplitRepository;
 import com.fittrack.backend.repository.TrainingRepository;
 import com.fittrack.backend.repository.UebungRepository;
 import org.springframework.boot.CommandLineRunner;
@@ -24,10 +27,13 @@ public class LibraryDataSeeder implements CommandLineRunner {
 
     private final UebungRepository uebungRepository;
     private final TrainingRepository trainingRepository;
+    private final SplitRepository splitRepository;
 
-    public LibraryDataSeeder(UebungRepository uebungRepository, TrainingRepository trainingRepository) {
+    public LibraryDataSeeder(UebungRepository uebungRepository, TrainingRepository trainingRepository,
+                              SplitRepository splitRepository) {
         this.uebungRepository = uebungRepository;
         this.trainingRepository = trainingRepository;
+        this.splitRepository = splitRepository;
     }
 
     @Override
@@ -106,6 +112,27 @@ public class LibraryDataSeeder implements CommandLineRunner {
         ));
 
         trainingRepository.saveAll(List.of(ganzkoerper, pushPull, beine, cardio));
+
+        // Machbarkeitsnachweis fuer Splits: eine einfache 3er-Rotation ohne feste Wochentage,
+        // die auf den bereits gesaeten Bibliotheks-Trainings aufbaut.
+        Split rotation = new Split();
+        rotation.setName("Ganzkoerper 3er-Rotation");
+        rotation.setBeschreibung("Einfacher Split ohne feste Wochentage: der Reihe nach durchlaufen und wiederholen.");
+        rotation.setAktuellerIndex(0);
+        rotation.setTrainings(List.of(
+                splitTraining(rotation, pushPull, 1),
+                splitTraining(rotation, beine, 2),
+                splitTraining(rotation, ganzkoerper, 3)
+        ));
+        splitRepository.save(rotation);
+    }
+
+    private SplitTraining splitTraining(Split split, Training training, int reihenfolge) {
+        SplitTraining st = new SplitTraining();
+        st.setSplit(split);
+        st.setTraining(training);
+        st.setReihenfolge(reihenfolge);
+        return st;
     }
 
     private Uebung kraftUebung(String name, String beschreibung, int empfWiederholungen) {

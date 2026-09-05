@@ -89,22 +89,38 @@ public class TrainingService {
             throw new RuntimeException("Dieses Training ist kein Bibliotheks-Training");
         }
 
-        Training vorhandeneKopie = trainingRepository.findByUserIdAndBibliothekOriginId(user.getId(), trainingId)
+        return ensureOwnCopy(original, user);
+    }
+
+    /**
+     * Liefert die eigene Kopie eines Bibliotheks-Trainings fuer diesen User, legt sie samt Kopien
+     * aller darin verwendeten Bibliotheks-Uebungen bei Bedarf an. Wird auch von SplitService
+     * genutzt, wenn ein Bibliotheks-Split samt seiner Trainings kopiert wird. Ist das uebergebene
+     * Training bereits einem User zugeordnet (keine Bibliotheks-Training), wird es unveraendert
+     * zurueckgegeben.
+     */
+    @Transactional
+    public Training ensureOwnCopy(Training training, User user) {
+        if (training.getUser() != null) {
+            return training;
+        }
+
+        Training vorhandeneKopie = trainingRepository.findByUserIdAndBibliothekOriginId(user.getId(), training.getId())
                 .orElse(null);
         if (vorhandeneKopie != null) {
             return vorhandeneKopie;
         }
 
         Training kopie = new Training();
-        kopie.setName(original.getName());
-        kopie.setBeschreibung(original.getBeschreibung());
-        kopie.setDefaultPauseZwischenSaetzenSekunden(original.getDefaultPauseZwischenSaetzenSekunden());
-        kopie.setDefaultPauseZwischenUebungenSekunden(original.getDefaultPauseZwischenUebungenSekunden());
+        kopie.setName(training.getName());
+        kopie.setBeschreibung(training.getBeschreibung());
+        kopie.setDefaultPauseZwischenSaetzenSekunden(training.getDefaultPauseZwischenSaetzenSekunden());
+        kopie.setDefaultPauseZwischenUebungenSekunden(training.getDefaultPauseZwischenUebungenSekunden());
         kopie.setUser(user);
-        kopie.setBibliothekOriginId(trainingId);
+        kopie.setBibliothekOriginId(training.getId());
 
         List<TrainingUebung> kopierteUebungen = new ArrayList<>();
-        for (TrainingUebung tu : original.getUebungen()) {
+        for (TrainingUebung tu : training.getUebungen()) {
             Uebung eigeneUebung = uebungService.ensureOwnCopy(tu.getUebung(), user);
 
             TrainingUebung neueZuordnung = new TrainingUebung();

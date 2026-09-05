@@ -1,0 +1,26 @@
+.plan-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.plan-row-fields {
+  flex: 1;
+}
+
+.plan-row-remove {
+  align-self: flex-start;
+}
+
+.plan-row-index {
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.split-hint {
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  margin-top: 2px;
+}
+
+.muted { color: var(--ink-soft); font-size: 0.9rem; }

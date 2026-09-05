@@ -1,0 +1,42 @@
+.split-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  text-decoration: none;
+  color: inherit;
+}
+
+.split-row:last-child { border-bottom: none; }
+
+.split-row-next {
+  background: var(--brass-bg);
+}
+
+.split-row-index {
+  font-weight: 700;
+  color: var(--ink-soft);
+  width: 1.5em;
+}
+
+.split-row-name {
+  font-weight: 600;
+  flex: 1;
+}
+
+.split-row-tag {
+  color: var(--ink-faint);
+  font-size: 0.78rem;
+  text-transform: capitalize;
+}
+
+.split-row-next-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--brass-ink);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.muted { color: var(--ink-soft); font-size: 0.9rem; }
