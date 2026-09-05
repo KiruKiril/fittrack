@@ -6,13 +6,16 @@ import { TrainingService } from '../../core/services/training.service';
 import { UebungService } from '../../core/services/uebung.service';
 import { LogService } from '../../core/services/log.service';
 import { Training } from '../../core/models/training.model';
-import { UebungTyp } from '../../core/models/uebung.model';
+import { Uebung, UebungTyp } from '../../core/models/uebung.model';
 import { TrainingAusfuehrung } from '../../core/models/log.model';
 import { extractErrorMessage } from '../../core/error-message';
 import { LiveSessionTracker } from '../../core/services/live-session-tracker';
 import { NumberStepper } from '../../shared/number-stepper/number-stepper';
 
 type Phase = 'intro' | 'performing' | 'resting' | 'done';
+
+/** Generischer Startwert fuer Wiederholungen, falls weder Historie noch Uebung.empfWiederholungen existiert. */
+const DEFAULT_REPS_FALLBACK = 8;
 
 interface PlanStep {
   uebungId: number;
@@ -153,9 +156,9 @@ export class LiveSession implements OnDestroy {
     }).subscribe({
       next: ({ training, uebungen, logs }) => {
         this.training.set(training);
-        const typById = new Map(uebungen.map((u) => [u.id, u.typ]));
+        const uebungById = new Map(uebungen.map((u) => [u.id, u]));
         const sortedLogs = [...logs].sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''));
-        this.steps = this.buildSteps(training, typById, sortedLogs);
+        this.steps = this.buildSteps(training, uebungById, sortedLogs);
         this.results = new Array(this.steps.length).fill(null);
         this.timings = new Array(this.steps.length).fill(null);
         this.restoreIfPresent();
@@ -174,13 +177,14 @@ export class LiveSession implements OnDestroy {
 
   private buildSteps(
     training: Training,
-    typById: Map<number | undefined, UebungTyp | undefined>,
+    uebungById: Map<number | undefined, Uebung>,
     sortedLogs: TrainingAusfuehrung[]
   ): PlanStep[] {
     const steps: PlanStep[] = [];
 
     for (const pu of training.uebungen) {
-      const typ = typById.get(pu.uebungId) ?? 'KRAFT';
+      const uebung = uebungById.get(pu.uebungId);
+      const typ = uebung?.typ ?? 'KRAFT';
       const pauseSatz = pu.pauseZwischenSaetzenSekunden ?? training.defaultPauseZwischenSaetzenSekunden;
       const pauseUebung = pu.pauseNachUebungSekunden ?? training.defaultPauseZwischenUebungenSekunden;
 
@@ -207,7 +211,11 @@ export class LiveSession implements OnDestroy {
             pauseAfterSameExercise: pauseSatz,
             pauseAfterExercise: pauseUebung,
             zielLabel,
-            previousReps: previous?.wiederholungen ?? null,
+            // Ohne Historie (previous === null) auf den Uebungs-Zielwert zurueckfallen, sonst
+            // auf einen generischen Startwert - das Feld soll beim allerersten Mal nicht leer sein.
+            // empfWiederholungen ist ein primitives int (nie null) und daher 0, wenn nichts
+            // gepflegt wurde - 0 zaehlt hier bewusst als "nicht gesetzt".
+            previousReps: (previous?.wiederholungen ?? uebung?.empfWiederholungen) || DEFAULT_REPS_FALLBACK,
             previousGewicht: previous?.gewicht ?? null,
             previousDistanzKm: null,
             previousDauerMinuten: null
@@ -229,8 +237,17 @@ export class LiveSession implements OnDestroy {
           zielLabel,
           previousReps: null,
           previousGewicht: null,
-          previousDistanzKm: previousEinheit ? previousEinheit.distanzMeter / 1000 : null,
-          previousDauerMinuten: previousEinheit ? previousEinheit.dauerSekunden / 60 : null
+          // Ohne Historie auf das im Trainingsplan hinterlegte Ziel dieser Uebung zurueckfallen.
+          previousDistanzKm: previousEinheit
+            ? previousEinheit.distanzMeter / 1000
+            : pu.empfDistanzMeter
+              ? pu.empfDistanzMeter / 1000
+              : null,
+          previousDauerMinuten: previousEinheit
+            ? previousEinheit.dauerSekunden / 60
+            : pu.empfDauerSekunden
+              ? pu.empfDauerSekunden / 60
+              : null
         });
       }
     }
