@@ -81,6 +81,12 @@ interface PersistedState {
   currentStepStartedAt: number | null;
   restStartedAt: number | null;
   timings: (StepTiming | null)[];
+  sessionInputs: [number, SessionInput][];
+}
+
+interface SessionInput {
+  reps: number | null;
+  gewicht: number | null;
 }
 
 @Component({
@@ -104,6 +110,9 @@ export class LiveSession implements OnDestroy {
   private sessionStartedAt: number | null = null;
   private currentStepStartedAt: number | null = null;
   private restStartedAt: number | null = null;
+  /** Zuletzt in dieser Session fuer eine Uebung eingetragene Werte, pro uebungId isoliert - damit
+   *  Satz 2+ vom vorherigen Satz DIESER Session uebernimmt, auch wenn keine Historie existiert. */
+  private sessionInputsByUebungId = new Map<number, SessionInput>();
 
   training = signal<Training | null>(null);
   steps: PlanStep[] = [];
@@ -321,6 +330,10 @@ export class LiveSession implements OnDestroy {
     const step = this.currentStep();
     if (!step) return;
 
+    if (step.kind === 'satz') {
+      this.sessionInputsByUebungId.set(step.uebungId, { reps: this.inputReps, gewicht: this.inputGewicht });
+    }
+
     this.results[this.stepIndex()] = step.kind === 'satz'
       ? { kind: 'satz', wiederholungen: this.inputReps ?? 0, gewicht: this.inputGewicht ?? 0, dropset: this.inputDropset }
       : {
@@ -421,13 +434,16 @@ export class LiveSession implements OnDestroy {
     this.inputNotiz = '';
   }
 
-  /** Befuellt Wiederholungen/Gewicht bzw. Distanz/Dauer mit den Werten der letzten
-   *  Ausfuehrung dieser Uebung, damit nicht jedes Mal alles neu eingetippt werden muss. */
+  /** Befuellt Wiederholungen/Gewicht bzw. Distanz/Dauer, damit nicht jedes Mal alles neu
+   *  eingetippt werden muss. Bevorzugt den zuletzt in DIESER Session fuer diese Uebung
+   *  eingetragenen Wert (z.B. Satz 1 -> Satz 2); erst ohne einen solchen wird auf die
+   *  historische letzte Ausfuehrung bzw. den generischen Default zurueckgefallen. */
   private applyPreviousValues(step: PlanStep | null): void {
     if (!step) return;
     if (step.kind === 'satz') {
-      this.inputReps = step.previousReps;
-      this.inputGewicht = step.previousGewicht;
+      const sessionValues = this.sessionInputsByUebungId.get(step.uebungId);
+      this.inputReps = sessionValues?.reps ?? step.previousReps;
+      this.inputGewicht = sessionValues?.gewicht ?? step.previousGewicht;
     } else {
       this.inputDistanzKm = step.previousDistanzKm;
       this.inputDauerMinuten = step.previousDauerMinuten;
@@ -564,7 +580,8 @@ export class LiveSession implements OnDestroy {
         sessionStartedAt: this.sessionStartedAt,
         currentStepStartedAt: this.currentStepStartedAt,
         restStartedAt: this.restStartedAt,
-        timings: this.timings
+        timings: this.timings,
+        sessionInputs: Array.from(this.sessionInputsByUebungId.entries())
       };
       localStorage.setItem(this.storageKey, JSON.stringify(state));
     } catch {
@@ -600,6 +617,7 @@ export class LiveSession implements OnDestroy {
       this.currentStepStartedAt = state.currentStepStartedAt ?? Date.now();
       this.restStartedAt = state.restStartedAt ?? null;
       this.timings = state.timings ?? new Array(this.steps.length).fill(null);
+      this.sessionInputsByUebungId = new Map(state.sessionInputs ?? []);
 
       if (state.phase === 'resting' && state.restEndsAt) {
         this.restEndsAt = state.restEndsAt;
