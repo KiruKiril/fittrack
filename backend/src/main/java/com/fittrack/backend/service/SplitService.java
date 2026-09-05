@@ -27,11 +27,14 @@ public class SplitService {
 
     private final SplitRepository splitRepository;
     private final TrainingService trainingService;
+    private final SportartService sportartService;
     private final UserRepository userRepository;
 
-    public SplitService(SplitRepository splitRepository, TrainingService trainingService, UserRepository userRepository) {
+    public SplitService(SplitRepository splitRepository, TrainingService trainingService,
+                         SportartService sportartService, UserRepository userRepository) {
         this.splitRepository = splitRepository;
         this.trainingService = trainingService;
+        this.sportartService = sportartService;
         this.userRepository = userRepository;
     }
 
@@ -85,6 +88,7 @@ public class SplitService {
         kopie.setAktuellerIndex(0);
         kopie.setUser(user);
         kopie.setBibliothekOriginId(splitId);
+        kopie.setSportarten(new ArrayList<>(original.getSportarten()));
 
         List<SplitTraining> kopierteTrainings = new ArrayList<>();
         for (SplitTraining st : original.getTrainings()) {
@@ -112,6 +116,7 @@ public class SplitService {
         split.setAktuellerIndex(0);
         split.setUser(user);
         split.setTrainings(buildSplitTrainings(split, request.getTrainings(), username));
+        split.setSportarten(sportartService.resolveOrCreate(request.getSportarten()));
 
         return splitRepository.save(split);
     }
@@ -126,6 +131,7 @@ public class SplitService {
 
         split.getTrainings().clear();
         split.getTrainings().addAll(buildSplitTrainings(split, request.getTrainings(), username));
+        split.setSportarten(sportartService.resolveOrCreate(request.getSportarten()));
 
         int anzahl = split.getTrainings().size();
         if (anzahl > 0 && split.getAktuellerIndex() >= anzahl) {

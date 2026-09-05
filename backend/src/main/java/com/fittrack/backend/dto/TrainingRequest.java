@@ -11,4 +11,6 @@ public class TrainingRequest {
     private Integer defaultPauseZwischenSaetzenSekunden;
     private Integer defaultPauseZwischenUebungenSekunden;
     private List<TrainingUebungRequest> uebungen;
+    /** Namen der Sportarten (offen erweiterbar - unbekannte Namen werden neu angelegt). */
+    private List<String> sportarten;
 }

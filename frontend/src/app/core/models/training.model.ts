@@ -18,4 +18,5 @@ export interface Training {
   createdAt?: string;
   uebungen: TrainingUebung[];
   bibliothek?: boolean;
+  sportarten?: string[];
 }

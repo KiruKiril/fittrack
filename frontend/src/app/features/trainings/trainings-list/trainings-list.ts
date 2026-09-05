@@ -1,4 +1,5 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { TrainingService } from '../../../core/services/training.service';
 import { Training } from '../../../core/models/training.model';
@@ -6,7 +7,7 @@ import { extractErrorMessage } from '../../../core/error-message';
 
 @Component({
   selector: 'app-trainings-list',
-  imports: [RouterLink],
+  imports: [RouterLink, FormsModule],
   templateUrl: './trainings-list.html',
   styleUrl: './trainings-list.scss'
 })
@@ -21,6 +22,19 @@ export class TrainingsList {
   bibliothekOpen = signal(false);
   bibliothekLoading = signal(false);
   addingId = signal<number | null>(null);
+  sportartFilter = signal<string>('');
+
+  sportartOptionen = computed(() => {
+    const namen = new Set<string>();
+    this.bibliothek().forEach((t) => (t.sportarten ?? []).forEach((s) => namen.add(s)));
+    return Array.from(namen).sort();
+  });
+
+  gefilterteBibliothek = computed(() => {
+    const filter = this.sportartFilter();
+    if (!filter) return this.bibliothek();
+    return this.bibliothek().filter((t) => (t.sportarten ?? []).includes(filter));
+  });
 
   constructor() {
     this.trainingService.getAll().subscribe({

@@ -1,5 +1,6 @@
 package com.fittrack.backend.dto;
 
+import com.fittrack.backend.entity.Sportart;
 import com.fittrack.backend.entity.Training;
 import lombok.Data;
 
@@ -19,6 +20,8 @@ public class TrainingResponse {
     private List<TrainingUebungResponse> uebungen;
     /** true = Bibliotheks-Training, von der App bereitgestellt und nicht vom eingeloggten User erstellt. */
     private boolean bibliothek;
+    /** Namen der zugeordneten Sportarten (offen erweiterbare Liste), fuer die Bibliotheks-Filterung. */
+    private List<String> sportarten;
 
     public static TrainingResponse from(Training training) {
         TrainingResponse dto = new TrainingResponse();
@@ -31,6 +34,11 @@ public class TrainingResponse {
                 training.getDefaultPauseZwischenUebungenSekunden() != null ? training.getDefaultPauseZwischenUebungenSekunden() : 120);
         dto.setCreatedAt(training.getCreatedAt());
         dto.setBibliothek(training.getUser() == null);
+        dto.setSportarten(
+                training.getSportarten() == null
+                        ? Collections.emptyList()
+                        : training.getSportarten().stream().map(Sportart::getName).collect(Collectors.toList())
+        );
         dto.setUebungen(
                 training.getUebungen() == null
                         ? Collections.emptyList()

@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -42,6 +43,13 @@ public class Split {
 
     @OneToMany(mappedBy = "split", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SplitTraining> trainings;
+
+    /** Offen erweiterbare Kategorisierung (siehe Sportart-Entity), fuer die Bibliotheks-Filterung. */
+    @ManyToMany
+    @JoinTable(name = "split_sportarten",
+            joinColumns = @JoinColumn(name = "split_id"),
+            inverseJoinColumns = @JoinColumn(name = "sportart_id"))
+    private List<Sportart> sportarten = new ArrayList<>();
 
     @Column(updatable = false)
     private LocalDateTime createdAt;

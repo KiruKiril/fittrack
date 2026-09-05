@@ -1,4 +1,5 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { SplitService } from '../../../core/services/split.service';
 import { Split } from '../../../core/models/split.model';
@@ -6,7 +7,7 @@ import { extractErrorMessage } from '../../../core/error-message';
 
 @Component({
   selector: 'app-splits-list',
-  imports: [RouterLink],
+  imports: [RouterLink, FormsModule],
   templateUrl: './splits-list.html',
   styleUrl: './splits-list.scss'
 })
@@ -21,6 +22,19 @@ export class SplitsList {
   bibliothekOpen = signal(false);
   bibliothekLoading = signal(false);
   addingId = signal<number | null>(null);
+  sportartFilter = signal<string>('');
+
+  sportartOptionen = computed(() => {
+    const namen = new Set<string>();
+    this.bibliothek().forEach((s) => (s.sportarten ?? []).forEach((n) => namen.add(n)));
+    return Array.from(namen).sort();
+  });
+
+  gefilterteBibliothek = computed(() => {
+    const filter = this.sportartFilter();
+    if (!filter) return this.bibliothek();
+    return this.bibliothek().filter((s) => (s.sportarten ?? []).includes(filter));
+  });
 
   constructor() {
     this.splitService.getAll().subscribe({

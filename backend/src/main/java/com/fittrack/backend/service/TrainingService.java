@@ -31,6 +31,7 @@ public class TrainingService {
     private final UebungRepository uebungRepository;
     private final UebungZuweisungRepository uebungZuweisungRepository;
     private final UebungService uebungService;
+    private final SportartService sportartService;
     private final UserRepository userRepository;
 
     public TrainingService(TrainingRepository trainingRepository,
@@ -39,6 +40,7 @@ public class TrainingService {
                             UebungRepository uebungRepository,
                             UebungZuweisungRepository uebungZuweisungRepository,
                             UebungService uebungService,
+                            SportartService sportartService,
                             UserRepository userRepository) {
         this.trainingRepository = trainingRepository;
         this.trainingZuweisungRepository = trainingZuweisungRepository;
@@ -46,6 +48,7 @@ public class TrainingService {
         this.uebungRepository = uebungRepository;
         this.uebungZuweisungRepository = uebungZuweisungRepository;
         this.uebungService = uebungService;
+        this.sportartService = sportartService;
         this.userRepository = userRepository;
     }
 
@@ -118,6 +121,7 @@ public class TrainingService {
         kopie.setDefaultPauseZwischenUebungenSekunden(training.getDefaultPauseZwischenUebungenSekunden());
         kopie.setUser(user);
         kopie.setBibliothekOriginId(training.getId());
+        kopie.setSportarten(new ArrayList<>(training.getSportarten()));
 
         List<TrainingUebung> kopierteUebungen = new ArrayList<>();
         for (TrainingUebung tu : training.getUebungen()) {
@@ -156,6 +160,7 @@ public class TrainingService {
                 request.getDefaultPauseZwischenUebungenSekunden() != null ? request.getDefaultPauseZwischenUebungenSekunden() : 120);
         training.setUser(user);
         training.setUebungen(buildTrainingUebungen(training, request.getUebungen(), user));
+        training.setSportarten(sportartService.resolveOrCreate(request.getSportarten()));
 
         return trainingRepository.save(training);
     }
@@ -174,6 +179,7 @@ public class TrainingService {
 
         training.getUebungen().clear();
         training.getUebungen().addAll(buildTrainingUebungen(training, request.getUebungen(), user));
+        training.setSportarten(sportartService.resolveOrCreate(request.getSportarten()));
 
         return trainingRepository.save(training);
     }

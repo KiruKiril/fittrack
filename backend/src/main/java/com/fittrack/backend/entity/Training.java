@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -38,6 +39,13 @@ public class Training {
 
     @OneToMany(mappedBy = "training", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TrainingUebung> uebungen;
+
+    /** Offen erweiterbare Kategorisierung (siehe Sportart-Entity), fuer die Bibliotheks-Filterung. */
+    @ManyToMany
+    @JoinTable(name = "training_sportarten",
+            joinColumns = @JoinColumn(name = "training_id"),
+            inverseJoinColumns = @JoinColumn(name = "sportart_id"))
+    private List<Sportart> sportarten = new ArrayList<>();
 
     @Column(updatable = false)
     private LocalDateTime createdAt;

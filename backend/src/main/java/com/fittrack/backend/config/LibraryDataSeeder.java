@@ -2,11 +2,13 @@ package com.fittrack.backend.config;
 
 import com.fittrack.backend.entity.Split;
 import com.fittrack.backend.entity.SplitTraining;
+import com.fittrack.backend.entity.Sportart;
 import com.fittrack.backend.entity.Training;
 import com.fittrack.backend.entity.TrainingUebung;
 import com.fittrack.backend.entity.Uebung;
 import com.fittrack.backend.entity.UebungTyp;
 import com.fittrack.backend.repository.SplitRepository;
+import com.fittrack.backend.repository.SportartRepository;
 import com.fittrack.backend.repository.TrainingRepository;
 import com.fittrack.backend.repository.UebungRepository;
 import org.springframework.boot.CommandLineRunner;
@@ -28,12 +30,14 @@ public class LibraryDataSeeder implements CommandLineRunner {
     private final UebungRepository uebungRepository;
     private final TrainingRepository trainingRepository;
     private final SplitRepository splitRepository;
+    private final SportartRepository sportartRepository;
 
     public LibraryDataSeeder(UebungRepository uebungRepository, TrainingRepository trainingRepository,
-                              SplitRepository splitRepository) {
+                              SplitRepository splitRepository, SportartRepository sportartRepository) {
         this.uebungRepository = uebungRepository;
         this.trainingRepository = trainingRepository;
         this.splitRepository = splitRepository;
+        this.sportartRepository = sportartRepository;
     }
 
     @Override
@@ -111,6 +115,17 @@ public class LibraryDataSeeder implements CommandLineRunner {
                 ausdauerTrainingUebung(cardio, uebungen.get("Radfahren"), 8000.0, 1200)
         ));
 
+        // Machbarkeitsnachweis fuer die Sportart-Filterung (offen erweiterbare Liste, siehe
+        // Sportart-Entity): zwei Beispiel-Sportarten, mit denen bestehende Bibliotheks-Trainings
+        // getaggt werden. Weitere Sportarten koennen jederzeit ohne Code-Aenderung ergaenzt werden.
+        Sportart bodybuilding = sportart("Bodybuilding");
+        Sportart laufen = sportart("Laufen");
+
+        ganzkoerper.setSportarten(List.of(bodybuilding));
+        pushPull.setSportarten(List.of(bodybuilding));
+        beine.setSportarten(List.of(bodybuilding));
+        cardio.setSportarten(List.of(laufen));
+
         trainingRepository.saveAll(List.of(ganzkoerper, pushPull, beine, cardio));
 
         // Machbarkeitsnachweis fuer Splits: eine einfache 3er-Rotation ohne feste Wochentage,
@@ -119,12 +134,21 @@ public class LibraryDataSeeder implements CommandLineRunner {
         rotation.setName("Ganzkoerper 3er-Rotation");
         rotation.setBeschreibung("Einfacher Split ohne feste Wochentage: der Reihe nach durchlaufen und wiederholen.");
         rotation.setAktuellerIndex(0);
+        rotation.setSportarten(List.of(bodybuilding));
         rotation.setTrainings(List.of(
                 splitTraining(rotation, pushPull, 1),
                 splitTraining(rotation, beine, 2),
                 splitTraining(rotation, ganzkoerper, 3)
         ));
         splitRepository.save(rotation);
+    }
+
+    private Sportart sportart(String name) {
+        return sportartRepository.findByNameIgnoreCase(name).orElseGet(() -> {
+            Sportart neu = new Sportart();
+            neu.setName(name);
+            return sportartRepository.save(neu);
+        });
     }
 
     private SplitTraining splitTraining(Split split, Training training, int reihenfolge) {

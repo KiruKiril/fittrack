@@ -1,5 +1,6 @@
 package com.fittrack.backend.dto;
 
+import com.fittrack.backend.entity.Sportart;
 import com.fittrack.backend.entity.Split;
 import com.fittrack.backend.entity.SplitTraining;
 import lombok.Data;
@@ -22,6 +23,8 @@ public class SplitResponse {
     private SplitTrainingResponse naechstesTraining;
     private LocalDateTime createdAt;
     private List<SplitTrainingResponse> trainings;
+    /** Namen der zugeordneten Sportarten (offen erweiterbare Liste), fuer die Bibliotheks-Filterung. */
+    private List<String> sportarten;
 
     public static SplitResponse from(Split split) {
         SplitResponse dto = new SplitResponse();
@@ -31,6 +34,11 @@ public class SplitResponse {
         dto.setBibliothek(split.getUser() == null);
         dto.setAktuellerIndex(split.getAktuellerIndex());
         dto.setCreatedAt(split.getCreatedAt());
+        dto.setSportarten(
+                split.getSportarten() == null
+                        ? Collections.emptyList()
+                        : split.getSportarten().stream().map(Sportart::getName).collect(Collectors.toList())
+        );
 
         List<SplitTraining> sortiert = split.getTrainings() == null
                 ? Collections.emptyList()

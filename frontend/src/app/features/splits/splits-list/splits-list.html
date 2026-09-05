@@ -18,18 +18,33 @@
 
   @if (bibliothekOpen()) {
     <section class="card card-pad stack bibliothek-panel">
-      <h2>Bibliothek</h2>
+      <div class="row-between">
+        <h2>Bibliothek</h2>
+        @if (sportartOptionen().length > 0) {
+          <select class="sportart-filter" [(ngModel)]="sportartFilter" name="sportartFilter">
+            <option value="">Alle Sportarten</option>
+            @for (s of sportartOptionen(); track s) {
+              <option [value]="s">{{ s }}</option>
+            }
+          </select>
+        }
+      </div>
       <p class="muted">Von fittrack bereitgestellte Splits — übernimm sie als eigene, frei anpassbare Kopie.</p>
       @if (bibliothekLoading()) {
         <p class="muted">Lädt…</p>
       } @else if (bibliothek().length === 0) {
         <p class="muted">Du hast bereits alle Bibliotheks-Splits übernommen.</p>
+      } @else if (gefilterteBibliothek().length === 0) {
+        <p class="muted">Keine Splits für diese Sportart.</p>
       } @else {
         <div class="bibliothek-list">
-          @for (s of bibliothek(); track s.id) {
+          @for (s of gefilterteBibliothek(); track s.id) {
             <div class="bibliothek-row">
               <div>
                 <span class="bibliothek-row-name">{{ s.name }}</span>
+                @if (s.sportarten && s.sportarten.length > 0) {
+                  <span class="bibliothek-row-tags">{{ s.sportarten.join(', ') }}</span>
+                }
                 <p class="split-trainings">{{ trainingsLabel(s) }}</p>
               </div>
               <button class="btn btn-secondary btn-sm" [disabled]="addingId() === s.id" (click)="addFromBibliothek(s, $event)">

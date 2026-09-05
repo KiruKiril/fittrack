@@ -27,4 +27,5 @@ export interface Split {
   naechstesTraining?: SplitTraining | null;
   createdAt?: string;
   trainings: SplitTraining[];
+  sportarten?: string[];
 }
