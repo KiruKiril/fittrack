@@ -33,6 +33,9 @@ public class Uebung {
     @JoinColumn(name = "user_id")
     private User user;
 
+    /** Id der Bibliotheks-Uebung, von der diese Uebung beim Uebernehmen kopiert wurde (falls zutreffend). */
+    private Long bibliothekOriginId;
+
     @Column(updatable = false)
     private LocalDateTime createdAt;
 

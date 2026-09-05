@@ -33,6 +33,9 @@ public class Training {
     @JoinColumn(name = "user_id")
     private User user;
 
+    /** Id des Bibliotheks-Trainings, von dem dieses Training beim Uebernehmen kopiert wurde (falls zutreffend). */
+    private Long bibliothekOriginId;
+
     @OneToMany(mappedBy = "training", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TrainingUebung> uebungen;
 

@@ -7,7 +7,6 @@ import com.fittrack.backend.entity.TrainingAusfuehrung;
 import com.fittrack.backend.entity.TrainingUebung;
 import com.fittrack.backend.entity.TrainingZuweisung;
 import com.fittrack.backend.entity.Uebung;
-import com.fittrack.backend.entity.UebungZuweisung;
 import com.fittrack.backend.entity.User;
 import com.fittrack.backend.repository.TrainingAusfuehrungRepository;
 import com.fittrack.backend.repository.TrainingRepository;
@@ -31,6 +30,7 @@ public class TrainingService {
     private final TrainingAusfuehrungRepository trainingAusfuehrungRepository;
     private final UebungRepository uebungRepository;
     private final UebungZuweisungRepository uebungZuweisungRepository;
+    private final UebungService uebungService;
     private final UserRepository userRepository;
 
     public TrainingService(TrainingRepository trainingRepository,
@@ -38,12 +38,14 @@ public class TrainingService {
                             TrainingAusfuehrungRepository trainingAusfuehrungRepository,
                             UebungRepository uebungRepository,
                             UebungZuweisungRepository uebungZuweisungRepository,
+                            UebungService uebungService,
                             UserRepository userRepository) {
         this.trainingRepository = trainingRepository;
         this.trainingZuweisungRepository = trainingZuweisungRepository;
         this.trainingAusfuehrungRepository = trainingAusfuehrungRepository;
         this.uebungRepository = uebungRepository;
         this.uebungZuweisungRepository = uebungZuweisungRepository;
+        this.uebungService = uebungService;
         this.userRepository = userRepository;
     }
 
@@ -54,48 +56,70 @@ public class TrainingService {
         return result;
     }
 
-    /** Bibliotheks-Trainings, die dieser User noch nicht zu seinen hinzugefuegt hat. */
+    /** Bibliotheks-Trainings, die dieser User weder (alt) verknuepft noch (neu) als eigene Kopie hat. */
     public List<Training> getLibraryTrainings(String username) {
         User user = getUser(username);
-        List<Long> assignedIds = trainingZuweisungRepository.findByUserId(user.getId()).stream()
+        List<Long> ausgeschlossen = new ArrayList<>(trainingZuweisungRepository.findByUserId(user.getId()).stream()
                 .map(z -> z.getTraining().getId())
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()));
+        trainingRepository.findByUserId(user.getId()).stream()
+                .map(Training::getBibliothekOriginId)
+                .filter(originId -> originId != null)
+                .forEach(ausgeschlossen::add);
 
         return trainingRepository.findByUserIsNull().stream()
-                .filter(t -> !assignedIds.contains(t.getId()))
+                .filter(t -> !ausgeschlossen.contains(t.getId()))
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Uebernimmt ein Bibliotheks-Training als eigene, frei bearbeitbare Kopie samt Kopien aller
+     * darin verwendeten Bibliotheks-Uebungen (statt nur zu verlinken) - Aenderungen wirken sich
+     * weder auf das Original noch auf andere User aus, die dieselbe Vorlage uebernommen haben.
+     * Bereits bestehende (alte) Verlinkungen ueber TrainingZuweisung/UebungZuweisung bleiben
+     * unangetastet und funktionieren weiterhin wie bisher.
+     */
     @Transactional
     public Training addTrainingFromLibrary(Long trainingId, String username) {
         User user = getUser(username);
-        Training training = trainingRepository.findById(trainingId)
+        Training original = trainingRepository.findById(trainingId)
                 .orElseThrow(() -> new RuntimeException("Training not found"));
 
-        if (training.getUser() != null) {
+        if (original.getUser() != null) {
             throw new RuntimeException("Dieses Training ist kein Bibliotheks-Training");
         }
 
-        if (!trainingZuweisungRepository.existsByUserIdAndTrainingId(user.getId(), trainingId)) {
-            TrainingZuweisung zuweisung = new TrainingZuweisung();
-            zuweisung.setUser(user);
-            zuweisung.setTraining(training);
-            trainingZuweisungRepository.save(zuweisung);
+        Training vorhandeneKopie = trainingRepository.findByUserIdAndBibliothekOriginId(user.getId(), trainingId)
+                .orElse(null);
+        if (vorhandeneKopie != null) {
+            return vorhandeneKopie;
         }
 
-        // Die im Training verwendeten Bibliotheks-Uebungen muessen auch in "meine Uebungen" landen,
-        // sonst wuerde der Trainingsplan auf Uebungen zeigen, auf die der User keinen Zugriff hat.
-        for (TrainingUebung tu : training.getUebungen()) {
-            Uebung uebung = tu.getUebung();
-            if (uebung.getUser() == null && !uebungZuweisungRepository.existsByUserIdAndUebungId(user.getId(), uebung.getId())) {
-                UebungZuweisung uebungZuweisung = new UebungZuweisung();
-                uebungZuweisung.setUser(user);
-                uebungZuweisung.setUebung(uebung);
-                uebungZuweisungRepository.save(uebungZuweisung);
-            }
-        }
+        Training kopie = new Training();
+        kopie.setName(original.getName());
+        kopie.setBeschreibung(original.getBeschreibung());
+        kopie.setDefaultPauseZwischenSaetzenSekunden(original.getDefaultPauseZwischenSaetzenSekunden());
+        kopie.setDefaultPauseZwischenUebungenSekunden(original.getDefaultPauseZwischenUebungenSekunden());
+        kopie.setUser(user);
+        kopie.setBibliothekOriginId(trainingId);
 
-        return training;
+        List<TrainingUebung> kopierteUebungen = new ArrayList<>();
+        for (TrainingUebung tu : original.getUebungen()) {
+            Uebung eigeneUebung = uebungService.ensureOwnCopy(tu.getUebung(), user);
+
+            TrainingUebung neueZuordnung = new TrainingUebung();
+            neueZuordnung.setTraining(kopie);
+            neueZuordnung.setUebung(eigeneUebung);
+            neueZuordnung.setEmpfSaetze(tu.getEmpfSaetze());
+            neueZuordnung.setEmpfDistanzMeter(tu.getEmpfDistanzMeter());
+            neueZuordnung.setEmpfDauerSekunden(tu.getEmpfDauerSekunden());
+            neueZuordnung.setPauseZwischenSaetzenSekunden(tu.getPauseZwischenSaetzenSekunden());
+            neueZuordnung.setPauseNachUebungSekunden(tu.getPauseNachUebungSekunden());
+            kopierteUebungen.add(neueZuordnung);
+        }
+        kopie.setUebungen(kopierteUebungen);
+
+        return trainingRepository.save(kopie);
     }
 
     public Training getTraining(Long id, String username) {

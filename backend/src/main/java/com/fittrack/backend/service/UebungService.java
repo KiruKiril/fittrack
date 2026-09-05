@@ -55,36 +55,67 @@ public class UebungService {
         return result;
     }
 
-    /** Bibliotheks-Uebungen, die dieser User noch nicht zu seinen hinzugefuegt hat. */
+    /** Bibliotheks-Uebungen, die dieser User weder (alt) verknuepft noch (neu) als eigene Kopie hat. */
     public List<Uebung> getLibraryUebungen(String username) {
         User user = getUser(username);
-        List<Long> assignedIds = uebungZuweisungRepository.findByUserId(user.getId()).stream()
+        List<Long> ausgeschlossen = new ArrayList<>(uebungZuweisungRepository.findByUserId(user.getId()).stream()
                 .map(z -> z.getUebung().getId())
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()));
+        uebungRepository.findByUserId(user.getId()).stream()
+                .map(Uebung::getBibliothekOriginId)
+                .filter(originId -> originId != null)
+                .forEach(ausgeschlossen::add);
 
         return uebungRepository.findByUserIsNull().stream()
-                .filter(u -> !assignedIds.contains(u.getId()))
+                .filter(u -> !ausgeschlossen.contains(u.getId()))
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Uebernimmt eine Bibliotheks-Uebung als eigene, frei bearbeitbare Kopie (statt nur zu
+     * verlinken) - Aenderungen daran wirken sich weder auf das Original noch auf andere User aus,
+     * die dieselbe Vorlage uebernommen haben. Bereits bestehende (alte) Verlinkungen ueber
+     * UebungZuweisung bleiben unangetastet und funktionieren weiterhin wie bisher.
+     */
     @Transactional
     public Uebung addUebungFromLibrary(Long uebungId, String username) {
         User user = getUser(username);
-        Uebung uebung = uebungRepository.findById(uebungId)
+        Uebung original = uebungRepository.findById(uebungId)
                 .orElseThrow(() -> new RuntimeException("Uebung not found"));
 
-        if (uebung.getUser() != null) {
+        if (original.getUser() != null) {
             throw new RuntimeException("Diese Uebung ist keine Bibliotheks-Uebung");
         }
 
-        if (!uebungZuweisungRepository.existsByUserIdAndUebungId(user.getId(), uebungId)) {
-            UebungZuweisung zuweisung = new UebungZuweisung();
-            zuweisung.setUser(user);
-            zuweisung.setUebung(uebung);
-            uebungZuweisungRepository.save(zuweisung);
+        return ensureOwnCopy(original, user);
+    }
+
+    /**
+     * Liefert die eigene Kopie einer Bibliotheks-Uebung fuer diesen User, legt sie bei Bedarf an.
+     * Wird auch von TrainingService genutzt, wenn ein Bibliotheks-Training samt seiner Uebungen
+     * kopiert wird. Ist die uebergebene Uebung bereits einem User zugeordnet (keine Bibliotheks-
+     * Uebung), wird sie unveraendert zurueckgegeben.
+     */
+    @Transactional
+    public Uebung ensureOwnCopy(Uebung uebung, User user) {
+        if (uebung.getUser() != null) {
+            return uebung;
         }
 
-        return uebung;
+        Uebung vorhandeneKopie = uebungRepository.findByUserIdAndBibliothekOriginId(user.getId(), uebung.getId())
+                .orElse(null);
+        if (vorhandeneKopie != null) {
+            return vorhandeneKopie;
+        }
+
+        Uebung kopie = new Uebung();
+        kopie.setName(uebung.getName());
+        kopie.setTyp(uebung.getTyp());
+        kopie.setBeschreibung(uebung.getBeschreibung());
+        kopie.setEmpfWiederholungen(uebung.getEmpfWiederholungen());
+        kopie.setUser(user);
+        kopie.setBibliothekOriginId(uebung.getId());
+        return uebungRepository.save(kopie);
     }
 
     public Uebung createUebung(UebungRequest request, String username) {
