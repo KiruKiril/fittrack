@@ -7,7 +7,7 @@
     <p class="muted">Lädt…</p>
   } @else if (training(); as t) {
 
-    @if (phase() !== 'intro' && phase() !== 'done') {
+    @if (phase() !== 'intro' && phase() !== 'review' && phase() !== 'done') {
       <div class="progress-bar">
         <div class="progress-bar-fill" [style.width.%]="(stepIndex() / steps.length) * 100"></div>
       </div>
@@ -49,7 +49,10 @@
             <button class="link-btn" (click)="leave()">← Verlassen</button>
             <span class="progress-label">{{ progressLabel() }}</span>
           </div>
-          <button class="link-btn" (click)="cancel()">Abbrechen</button>
+          <div class="row">
+            <button class="link-btn" (click)="endEarly()">Beenden</button>
+            <button class="link-btn" (click)="cancel()">Abbrechen</button>
+          </div>
         </div>
 
         <div class="exercise-head">
@@ -116,7 +119,10 @@
     <!-- RESTING -->
     @if (phase() === 'resting') {
       <div class="resting">
-        <button class="link-btn resting-leave" (click)="leave()">← Verlassen</button>
+        <div class="row-between resting-top">
+          <button class="link-btn" (click)="leave()">← Verlassen</button>
+          <button class="link-btn" (click)="endEarly()">Beenden</button>
+        </div>
         <span class="resting-label">Pause</span>
         <div class="timer tabular">{{ formatTime(timeLeft()) }}</div>
 
@@ -134,39 +140,57 @@
       </div>
     }
 
+    <ng-template #summaryBlock>
+      <div class="done-total">
+        <span class="done-total-value tabular">{{ formatTime(totalSeconds()) }}</span>
+        <span class="done-total-label">Gesamtzeit</span>
+        <span class="done-total-split tabular">Aktiv {{ formatTime(activeSeconds()) }} · Pause {{ formatTime(restSecondsTotal()) }}</span>
+      </div>
+
+      <div class="done-breakdown">
+        @for (ex of exerciseSummaries(); track ex.uebungName) {
+          <div class="done-exercise">
+            <div class="row-between">
+              <span class="done-exercise-name">{{ ex.uebungName }}</span>
+              <span class="tabular done-exercise-time">{{ formatTime(ex.activeSeconds + ex.restSeconds) }}</span>
+            </div>
+            @if (ex.steps.length > 1) {
+              <div class="done-step-chips">
+                @for (s of ex.steps; track s.setIndex) {
+                  <span class="done-step-chip tabular">
+                    {{ s.kind === 'satz' ? 'Satz ' + s.setIndex : 'Einheit' }} {{ s.activeSeconds }}s
+                    @if (s.restSeconds !== null) { → {{ s.restSeconds }}s Pause }
+                  </span>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </ng-template>
+
+    <!-- REVIEW -->
+    @if (phase() === 'review') {
+      <div class="done">
+        <div class="done-emoji">🏁</div>
+        <h1>Training beenden?</h1>
+        <p class="muted">{{ t.name }}</p>
+
+        <ng-container [ngTemplateOutlet]="summaryBlock" />
+
+        <button class="btn btn-primary btn-block btn-lg" (click)="saveSession()">✓ Speichern</button>
+        <button class="btn btn-danger btn-block" (click)="discardSession()">Verwerfen</button>
+      </div>
+    }
+
     <!-- DONE -->
     @if (phase() === 'done') {
       <div class="done">
         <div class="done-emoji">🎉</div>
-        <h1>Training abgeschlossen!</h1>
+        <h1>Training gespeichert!</h1>
         <p class="muted">{{ t.name }}</p>
 
-        <div class="done-total">
-          <span class="done-total-value tabular">{{ formatTime(totalSeconds()) }}</span>
-          <span class="done-total-label">Gesamtzeit</span>
-          <span class="done-total-split tabular">Aktiv {{ formatTime(activeSeconds()) }} · Pause {{ formatTime(restSecondsTotal()) }}</span>
-        </div>
-
-        <div class="done-breakdown">
-          @for (ex of exerciseSummaries(); track ex.uebungName) {
-            <div class="done-exercise">
-              <div class="row-between">
-                <span class="done-exercise-name">{{ ex.uebungName }}</span>
-                <span class="tabular done-exercise-time">{{ formatTime(ex.activeSeconds + ex.restSeconds) }}</span>
-              </div>
-              @if (ex.steps.length > 1) {
-                <div class="done-step-chips">
-                  @for (s of ex.steps; track s.setIndex) {
-                    <span class="done-step-chip tabular">
-                      {{ s.kind === 'satz' ? 'Satz ' + s.setIndex : 'Einheit' }} {{ s.activeSeconds }}s
-                      @if (s.restSeconds !== null) { → {{ s.restSeconds }}s Pause }
-                    </span>
-                  }
-                </div>
-              }
-            </div>
-          }
-        </div>
+        <ng-container [ngTemplateOutlet]="summaryBlock" />
 
         @if (saving()) {
           <p class="muted">Speichert…</p>

@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal, OnDestroy } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
@@ -12,7 +13,7 @@ import { extractErrorMessage } from '../../core/error-message';
 import { LiveSessionTracker } from '../../core/services/live-session-tracker';
 import { NumberStepper } from '../../shared/number-stepper/number-stepper';
 
-type Phase = 'intro' | 'performing' | 'resting' | 'done';
+type Phase = 'intro' | 'performing' | 'resting' | 'review' | 'done';
 
 /** Generischer Startwert fuer Wiederholungen, falls weder Historie noch Uebung.empfWiederholungen existiert. */
 const DEFAULT_REPS_FALLBACK = 8;
@@ -91,7 +92,7 @@ interface SessionInput {
 
 @Component({
   selector: 'app-live-session',
-  imports: [FormsModule, RouterLink, NumberStepper],
+  imports: [FormsModule, RouterLink, NumberStepper, NgTemplateOutlet],
   templateUrl: './live-session.html',
   styleUrl: './live-session.scss'
 })
@@ -359,12 +360,51 @@ export class LiveSession implements OnDestroy {
     };
 
     if (step.isLastStepOverall) {
-      this.finishSession();
+      this.enterReview();
       return;
     }
 
     const pause = step.isLastStepOfExercise ? step.pauseAfterExercise : step.pauseAfterSameExercise;
     this.beginRest(pause);
+  }
+
+  /** "Beenden"-Aktion, die waehrend der ganzen Session (nicht nur nach vollstaendigem
+   *  Durchlauf) verfuegbar ist. Fuehrt immer erst zur Review-Ansicht mit Speichern/Verwerfen -
+   *  anders als cancel(), das sofort und ohne Rueckfrage zur Zusammenfassung abbricht. */
+  endEarly(): void {
+    if (this.phase() === 'performing'
+        && !confirm('Training jetzt beenden? Der aktuelle, noch nicht abgeschlossene Satz wird nicht gespeichert.')) {
+      return;
+    }
+    this.enterReview();
+  }
+
+  /** Stoppt Timer/Pause, berechnet die Zusammenfassung aus den bisher erfassten Schritten und
+   *  zeigt die Review-Ansicht - noch OHNE zu speichern oder die Session-Daten zu loeschen, damit
+   *  der User zwischen Speichern und Verwerfen waehlen kann. */
+  private enterReview(): void {
+    if (this.timerHandle) clearInterval(this.timerHandle);
+    this.recordRestEnd();
+    this.computeSummaries();
+    this.phase.set('review');
+    this.persist();
+  }
+
+  /** Uebernimmt die Review-Zusammenfassung und speichert die Session wie gewohnt. */
+  saveSession(): void {
+    this.phase.set('done');
+    this.liveSessionTracker.clear();
+    this.clearPersisted();
+    this.submitLog();
+  }
+
+  /** Verwirft die erfassten Daten (kein POST) und kehrt zum Trainingsplan zurueck. */
+  discardSession(): void {
+    if (!confirm('Training wirklich verwerfen? Die erfassten Daten gehen verloren.')) return;
+    if (this.timerHandle) clearInterval(this.timerHandle);
+    this.liveSessionTracker.clear();
+    this.clearPersisted();
+    this.router.navigate(['/trainings', this.trainingId]);
   }
 
   private beginRest(seconds: number): void {
@@ -450,20 +490,16 @@ export class LiveSession implements OnDestroy {
     }
   }
 
-  private finishSession(): void {
-    if (this.timerHandle) clearInterval(this.timerHandle);
-    this.phase.set('done');
-
+  /** Berechnet Gesamtzeit/Aktiv/Pause/pro-Uebung-Aufschluesselung aus den bisher erfassten
+   *  Schritten - unabhaengig davon, ob der Plan vollstaendig durchlaufen oder vorzeitig
+   *  beendet wurde. Setzt nur die Anzeige-Signale, speichert oder loescht nichts. */
+  private computeSummaries(): void {
     this.totalSeconds.set(
       this.sessionStartedAt !== null ? Math.max(0, Math.round((Date.now() - this.sessionStartedAt) / 1000)) : 0
     );
     this.activeSeconds.set(this.timings.reduce((sum, t) => sum + (t?.activeSeconds ?? 0), 0));
     this.restSecondsTotal.set(this.timings.reduce((sum, t) => sum + (t?.restSeconds ?? 0), 0));
     this.exerciseSummaries.set(this.buildExerciseSummaries());
-
-    this.liveSessionTracker.clear();
-    this.clearPersisted();
-    this.submitLog();
   }
 
   private buildExerciseSummaries(): ExerciseTimingSummary[] {
@@ -623,6 +659,9 @@ export class LiveSession implements OnDestroy {
         this.restEndsAt = state.restEndsAt;
         this.phase.set('resting');
         this.tick();
+      } else if (state.phase === 'review') {
+        this.computeSummaries();
+        this.phase.set('review');
       } else if (state.phase === 'performing' || state.phase === 'resting') {
         this.phase.set('performing');
       }
@@ -631,7 +670,7 @@ export class LiveSession implements OnDestroy {
         this.applyPreviousValues(this.currentStep());
       }
 
-      if (this.phase() === 'performing' || this.phase() === 'resting') {
+      if (this.phase() === 'performing' || this.phase() === 'resting' || this.phase() === 'review') {
         this.liveSessionTracker.start(this.trainingId, this.training()?.name ?? state.trainingName ?? '');
       }
     } catch {
