@@ -58,6 +58,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/log/log-history/log-history').then((m) => m.LogHistory)
       },
       {
+        path: 'log/kalender',
+        loadComponent: () => import('./features/log/log-calendar/log-calendar').then((m) => m.LogCalendar)
+      },
+      {
         path: 'log/neu/:trainingId',
         loadComponent: () => import('./features/log/log-form/log-form').then((m) => m.LogForm)
       },

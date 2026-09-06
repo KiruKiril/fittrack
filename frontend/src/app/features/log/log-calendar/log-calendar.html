@@ -1,0 +1,51 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Verlauf</h1>
+      <p>Kalenderansicht deiner geloggten Trainings.</p>
+    </div>
+    <a class="btn btn-secondary" routerLink="/log">☰ Liste</a>
+  </div>
+
+  @if (error()) {
+    <div class="form-error">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <p class="muted">Lädt…</p>
+  } @else {
+    <div class="calendar-nav">
+      <button type="button" class="link-btn" (click)="previousMonth()">← Vorheriger Monat</button>
+      <div class="calendar-month-label">
+        <span>{{ monthLabel() }}</span>
+        <button type="button" class="link-btn" (click)="goToToday()">Heute</button>
+      </div>
+      <button type="button" class="link-btn" (click)="nextMonth()">Nächster Monat →</button>
+    </div>
+
+    <div class="calendar-grid">
+      <div class="calendar-weekday-row">
+        @for (w of wochentageKurz; track w) {
+          <span class="calendar-weekday">{{ w }}</span>
+        }
+      </div>
+
+      @for (week of weeks(); track $index) {
+        <div class="calendar-week">
+          @for (day of week; track day.key) {
+            <div class="calendar-day" [class.calendar-day-outside]="!day.inCurrentMonth" [class.calendar-day-today]="day.isToday">
+              <span class="calendar-day-number tabular">{{ day.dayNumber }}</span>
+              @if (day.logs.length > 0) {
+                <div class="calendar-day-logs">
+                  @for (log of day.logs; track log.id) {
+                    <a class="calendar-day-log" [routerLink]="['/log', log.id]">{{ log.trainingName }}</a>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
