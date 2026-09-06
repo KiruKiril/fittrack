@@ -36,44 +36,55 @@
       <div class="stack">
         <div>
           <h2>Trainings im Split</h2>
-          <p class="split-hint">Reihenfolge per Pfeil anpassen. Wochentag ist optional — ohne feste Tage läuft der Split einfach der Reihe nach durch.</p>
+          <p class="split-hint">Reihenfolge per Griff ziehen oder mit den Pfeilen anpassen. Wochentag ist optional — ohne feste Tage läuft der Split einfach der Reihe nach durch.</p>
         </div>
 
-        @for (row of rows; track $index) {
-          <div class="card card-pad plan-row">
-            <div class="row-between">
-              <span class="plan-row-index tabular">{{ $index + 1 }}.</span>
-              <div class="row">
-                <button type="button" class="link-btn" [disabled]="$index === 0" (click)="moveUp($index)">↑</button>
-                <button type="button" class="link-btn" [disabled]="$index === rows.length - 1" (click)="moveDown($index)">↓</button>
+        <div class="plan-row-list" cdkDropList (cdkDropListDropped)="drop($event)">
+          @for (row of rows; track $index) {
+            <div class="card card-pad plan-row" cdkDrag>
+              <div class="row-between">
+                <div class="row">
+                  <span class="drag-handle" cdkDragHandle aria-label="Zum Sortieren ziehen">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                      <circle cx="9" cy="6" r="1.5" /><circle cx="15" cy="6" r="1.5" />
+                      <circle cx="9" cy="12" r="1.5" /><circle cx="15" cy="12" r="1.5" />
+                      <circle cx="9" cy="18" r="1.5" /><circle cx="15" cy="18" r="1.5" />
+                    </svg>
+                  </span>
+                  <span class="plan-row-index tabular">{{ $index + 1 }}.</span>
+                </div>
+                <div class="row">
+                  <button type="button" class="link-btn" [disabled]="$index === 0" (click)="moveUp($index)">↑</button>
+                  <button type="button" class="link-btn" [disabled]="$index === rows.length - 1" (click)="moveDown($index)">↓</button>
+                </div>
               </div>
-            </div>
-            <div class="field-row plan-row-fields">
-              <div class="field">
-                <label>Training</label>
-                <select [(ngModel)]="row.trainingId" [name]="'training-' + $index">
-                  <option [ngValue]="null">— auswählen —</option>
-                  @for (t of trainings(); track t.id) {
-                    <option [ngValue]="t.id">{{ t.name }}</option>
-                  }
-                </select>
+              <div class="field-row plan-row-fields">
+                <div class="field">
+                  <label>Training</label>
+                  <select [(ngModel)]="row.trainingId" [name]="'training-' + $index">
+                    <option [ngValue]="null">— auswählen —</option>
+                    @for (t of trainings(); track t.id) {
+                      <option [ngValue]="t.id">{{ t.name }}</option>
+                    }
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Wochentag (optional)</label>
+                  <select [(ngModel)]="row.wochentag" [name]="'wochentag-' + $index">
+                    <option value="">— kein fester Tag —</option>
+                    @for (w of wochentage; track w.value) {
+                      <option [value]="w.value">{{ w.label }}</option>
+                    }
+                  </select>
+                </div>
               </div>
-              <div class="field">
-                <label>Wochentag (optional)</label>
-                <select [(ngModel)]="row.wochentag" [name]="'wochentag-' + $index">
-                  <option value="">— kein fester Tag —</option>
-                  @for (w of wochentage; track w.value) {
-                    <option [value]="w.value">{{ w.label }}</option>
-                  }
-                </select>
-              </div>
-            </div>
 
-            @if (rows.length > 1) {
-              <button type="button" class="btn btn-danger btn-sm plan-row-remove" (click)="removeRow($index)">Entfernen</button>
-            }
-          </div>
-        }
+              @if (rows.length > 1) {
+                <button type="button" class="btn btn-danger btn-sm plan-row-remove" (click)="removeRow($index)">Entfernen</button>
+              }
+            </div>
+          }
+        </div>
 
         <button type="button" class="btn btn-secondary" (click)="addRow()">+ Training hinzufügen</button>
       </div>

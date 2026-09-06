@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { SplitService } from '../../../core/services/split.service';
 import { TrainingService } from '../../../core/services/training.service';
 import { Training } from '../../../core/models/training.model';
@@ -14,7 +15,7 @@ interface PlanRow {
 
 @Component({
   selector: 'app-split-form',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, DragDropModule],
   templateUrl: './split-form.html',
   styleUrl: './split-form.scss'
 })
@@ -70,6 +71,14 @@ export class SplitForm {
     if (index === this.rows.length - 1) return;
     const rows = [...this.rows];
     [rows[index], rows[index + 1]] = [rows[index + 1], rows[index]];
+    this.rows = rows;
+  }
+
+  /** Umsortieren per Drag-and-Drop (Grip-Handle pro Zeile) - die ↑/↓-Buttons bleiben zusaetzlich
+   *  als tastatur-/screenreader-zugaengliche Alternative bestehen. */
+  drop(event: CdkDragDrop<PlanRow[]>): void {
+    const rows = [...this.rows];
+    moveItemInArray(rows, event.previousIndex, event.currentIndex);
     this.rows = rows;
   }
 
