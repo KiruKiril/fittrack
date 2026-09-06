@@ -59,10 +59,32 @@
   border-width: 2px;
 }
 
+.calendar-day-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
 .calendar-day-number {
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--ink-soft);
+}
+
+.calendar-day-add {
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ink-faint);
+  text-decoration: none;
+  padding: 2px 4px;
+  border-radius: 4px;
+
+  &:hover {
+    background: var(--brass-bg);
+    color: var(--brass-ink);
+  }
 }
 
 .calendar-day-logs {

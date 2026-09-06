@@ -76,6 +76,9 @@ public class TrainingAusfuehrungService {
         trainingAusfuehrung.setUser(user);
         trainingAusfuehrung.setOrt(request.getOrt());
         trainingAusfuehrung.setDauerSekunden(request.getDauerSekunden());
+        if (request.getDatum() != null) {
+            trainingAusfuehrung.setCreatedAt(request.getDatum().atTime(12, 0));
+        }
         trainingAusfuehrung.setUebungSessions(buildUebungSessions(trainingAusfuehrung, request.getUebungSessions(), user));
 
         return trainingAusfuehrungRepository.save(trainingAusfuehrung);

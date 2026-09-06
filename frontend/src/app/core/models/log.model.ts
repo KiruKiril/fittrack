@@ -33,5 +33,7 @@ export interface TrainingAusfuehrung {
   ort?: string | null;
   dauerSekunden?: number | null;
   createdAt?: string;
+  /** Optional: nachtraeglich gewaehltes Datum (z.B. aus der Kalender-Ansicht) statt "jetzt". */
+  datum?: string | null;
   uebungSessions: UebungSession[];
 }

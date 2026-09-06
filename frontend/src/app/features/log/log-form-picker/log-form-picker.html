@@ -1,0 +1,41 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Training eintragen</h1>
+      <p>Wähle Datum und Trainingsplan für den nachträglichen Eintrag.</p>
+    </div>
+    <a class="btn btn-secondary" routerLink="/log/kalender">Abbrechen</a>
+  </div>
+
+  @if (error()) {
+    <div class="form-error">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <p class="muted">Lädt…</p>
+  } @else if (trainings().length === 0) {
+    <div class="empty-state">
+      <p>Du hast noch keine Trainingspläne angelegt.</p>
+      <a class="btn btn-primary btn-sm" routerLink="/trainings">Zu den Trainingsplänen</a>
+    </div>
+  } @else {
+    <form class="stack" (ngSubmit)="weiter()">
+      <div class="card card-pad stack">
+        <div class="field">
+          <label for="datum">Datum</label>
+          <input id="datum" type="date" [(ngModel)]="datum" name="datum" required />
+        </div>
+        <div class="field">
+          <label for="training">Trainingsplan</label>
+          <select id="training" [(ngModel)]="trainingId" name="training" required>
+            @for (t of trainings(); track t.id) {
+              <option [ngValue]="t.id">{{ t.name }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" type="submit" [disabled]="!trainingId">Weiter</button>
+    </form>
+  }
+</div>

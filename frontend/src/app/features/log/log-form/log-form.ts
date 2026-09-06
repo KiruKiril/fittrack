@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
@@ -36,7 +37,7 @@ interface SessionRow {
 
 @Component({
   selector: 'app-log-form',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, DatePipe],
   templateUrl: './log-form.html',
   styleUrl: './log-form.scss'
 })
@@ -50,6 +51,8 @@ export class LogForm {
   training = signal<Training | null>(null);
   sessions = signal<SessionRow[]>([]);
   ort = '';
+  /** Nur gesetzt, wenn ueber die Kalender-Ansicht mit einem konkreten Datum angelegt (statt "jetzt"). */
+  datum: string | null = null;
 
   loading = signal(true);
   saving = signal(false);
@@ -57,6 +60,7 @@ export class LogForm {
 
   constructor() {
     const trainingId = Number(this.route.snapshot.paramMap.get('trainingId'));
+    this.datum = this.route.snapshot.queryParamMap.get('datum');
 
     forkJoin({
       training: this.trainingService.getOne(trainingId),
@@ -172,6 +176,7 @@ export class LogForm {
     const payload: TrainingAusfuehrung = {
       trainingId: training.id,
       ort: this.ort || null,
+      datum: this.datum,
       uebungSessions
     };
 

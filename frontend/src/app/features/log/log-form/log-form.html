@@ -9,7 +9,9 @@
     <div class="page-header">
       <div>
         <h1>{{ t.name }} loggen</h1>
-        <p>Trag ein, was du wirklich gemacht hast.</p>
+        <p>
+          @if (datum) { Für den {{ datum | date: 'dd.MM.yyyy' }} eintragen. } @else { Trag ein, was du wirklich gemacht hast. }
+        </p>
       </div>
       <a class="btn btn-secondary" [routerLink]="['/trainings', t.id]">Abbrechen</a>
     </div>

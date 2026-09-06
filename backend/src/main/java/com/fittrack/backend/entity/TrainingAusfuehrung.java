@@ -36,7 +36,11 @@ public class TrainingAusfuehrung {
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
+        // Bereits explizit gesetzt (z.B. nachtraeglicher Kalender-Eintrag mit gewaehltem Datum) -
+        // nicht mit "jetzt" ueberschreiben.
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
     }
 
     private String ort;
