@@ -66,6 +66,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/log/log-form-picker/log-form-picker').then((m) => m.LogFormPicker)
       },
       {
+        path: 'log/neu/uebung/:uebungId',
+        loadComponent: () => import('./features/log/log-form-ausdauer/log-form-ausdauer').then((m) => m.LogFormAusdauer)
+      },
+      {
         path: 'log/neu/:trainingId',
         loadComponent: () => import('./features/log/log-form/log-form').then((m) => m.LogForm)
       },

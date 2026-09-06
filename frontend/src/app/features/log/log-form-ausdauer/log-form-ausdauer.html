@@ -1,0 +1,69 @@
+<div class="page">
+  @if (error()) {
+    <div class="form-error">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <p class="muted">Lädt…</p>
+  } @else if (uebung(); as u) {
+    <div class="page-header">
+      <div>
+        <h1>{{ u.name }} loggen</h1>
+        <p>
+          @if (datum) { Für den {{ datum | date: 'dd.MM.yyyy' }} eintragen. } @else { Trag ein, was du wirklich gemacht hast. }
+        </p>
+      </div>
+      <a class="btn btn-secondary" routerLink="/log/kalender">Abbrechen</a>
+    </div>
+
+    <form class="stack" (ngSubmit)="submit()">
+      <div class="card card-pad">
+        <div class="field">
+          <label for="ort">Ort</label>
+          <input id="ort" type="text" [(ngModel)]="ort" name="ort" placeholder="z.B. Park, Laufstrecke" />
+        </div>
+      </div>
+
+      <div class="card card-pad session-card">
+        @for (einheit of einheiten(); track $index) {
+          <div class="ausdauer-block">
+            <div class="field-row">
+              <div class="field">
+                <label>Distanz (km)</label>
+                <input type="number" min="0" step="0.1" [(ngModel)]="einheit.distanzKm" [name]="'distanz-' + $index" />
+              </div>
+              <div class="field">
+                <label>Dauer (min)</label>
+                <input type="number" min="0" [(ngModel)]="einheit.dauerMinuten" [name]="'dauer-' + $index" />
+              </div>
+              <div class="field">
+                <label>Ø Puls</label>
+                <input type="number" min="0" [(ngModel)]="einheit.herzfrequenzDurchschnitt" [name]="'hfavg-' + $index" />
+              </div>
+              <div class="field">
+                <label>Max. Puls</label>
+                <input type="number" min="0" [(ngModel)]="einheit.herzfrequenzMax" [name]="'hfmax-' + $index" />
+              </div>
+              <div class="field">
+                <label>Höhenmeter</label>
+                <input type="number" min="0" [(ngModel)]="einheit.hoehenmeter" [name]="'hoehe-' + $index" />
+              </div>
+            </div>
+            <div class="field">
+              <label>Notiz</label>
+              <input type="text" [(ngModel)]="einheit.notiz" [name]="'notiz-' + $index" placeholder="optional" />
+            </div>
+            @if (einheiten().length > 1) {
+              <button type="button" class="link-btn" (click)="removeEinheit($index)">Entfernen</button>
+            }
+          </div>
+        }
+        <button type="button" class="btn btn-secondary btn-sm" (click)="addEinheit()">+ weitere Einheit (Intervall)</button>
+      </div>
+
+      <button class="btn btn-primary" type="submit" [disabled]="saving()">
+        {{ saving() ? 'Speichert…' : 'Training speichern' }}
+      </button>
+    </form>
+  }
+</div>

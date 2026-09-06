@@ -2,7 +2,7 @@
   <div class="page-header">
     <div>
       <h1>Training eintragen</h1>
-      <p>Wähle Datum und Trainingsplan für den nachträglichen Eintrag.</p>
+      <p>Wähle Datum und Trainingsplan bzw. Ausdauer-Übung für den nachträglichen Eintrag.</p>
     </div>
     <a class="btn btn-secondary" routerLink="/log/kalender">Abbrechen</a>
   </div>
@@ -13,29 +13,52 @@
 
   @if (loading()) {
     <p class="muted">Lädt…</p>
-  } @else if (trainings().length === 0) {
+  } @else if (trainings().length === 0 && ausdauerUebungen().length === 0) {
     <div class="empty-state">
-      <p>Du hast noch keine Trainingspläne angelegt.</p>
+      <p>Du hast noch keine Trainingspläne oder Übungen angelegt.</p>
       <a class="btn btn-primary btn-sm" routerLink="/trainings">Zu den Trainingsplänen</a>
     </div>
   } @else {
     <form class="stack" (ngSubmit)="weiter()">
       <div class="card card-pad stack">
+        @if (trainings().length > 0 && ausdauerUebungen().length > 0) {
+          <div class="mode-toggle">
+            <button type="button" class="mode-btn" [class.active]="modus() === 'training'" (click)="modus.set('training')">Trainingsplan</button>
+            <button type="button" class="mode-btn" [class.active]="modus() === 'ausdauer'" (click)="modus.set('ausdauer')">Ausdauer-Übung</button>
+          </div>
+        }
+
         <div class="field">
           <label for="datum">Datum</label>
           <input id="datum" type="date" [(ngModel)]="datum" name="datum" required />
         </div>
-        <div class="field">
-          <label for="training">Trainingsplan</label>
-          <select id="training" [(ngModel)]="trainingId" name="training" required>
-            @for (t of trainings(); track t.id) {
-              <option [ngValue]="t.id">{{ t.name }}</option>
-            }
-          </select>
-        </div>
+
+        @if (modus() === 'training') {
+          <div class="field">
+            <label for="training">Trainingsplan</label>
+            <select id="training" [(ngModel)]="trainingId" name="training" required>
+              @for (gruppe of gruppierteTrainings(); track gruppe.label) {
+                <optgroup [label]="gruppe.label">
+                  @for (t of gruppe.trainings; track t.id) {
+                    <option [ngValue]="t.id">{{ t.name }}</option>
+                  }
+                </optgroup>
+              }
+            </select>
+          </div>
+        } @else {
+          <div class="field">
+            <label for="uebung">Ausdauer-Übung</label>
+            <select id="uebung" [(ngModel)]="uebungId" name="uebung" required>
+              @for (u of ausdauerUebungen(); track u.id) {
+                <option [ngValue]="u.id">{{ u.name }}</option>
+              }
+            </select>
+          </div>
+        }
       </div>
 
-      <button class="btn btn-primary" type="submit" [disabled]="!trainingId">Weiter</button>
+      <button class="btn btn-primary" type="submit" [disabled]="!hatAuswahl()">Weiter</button>
     </form>
   }
 </div>

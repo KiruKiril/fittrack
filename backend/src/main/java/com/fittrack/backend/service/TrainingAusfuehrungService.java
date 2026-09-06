@@ -63,22 +63,45 @@ public class TrainingAusfuehrungService {
     public TrainingAusfuehrung createTrainingAusfuehrung(TrainingAusfuehrungRequest request, String username) {
         User user = getUser(username);
 
-        Training training = trainingRepository.findById(request.getTrainingId())
-                .orElseThrow(() -> new RuntimeException("Training not found"));
-
-        if (!isTrainingAccessible(training, user)) {
-            throw new RuntimeException("Not authorized to use this training");
-        }
-
         TrainingAusfuehrung trainingAusfuehrung = new TrainingAusfuehrung();
-        trainingAusfuehrung.setTraining(training);
-        trainingAusfuehrung.setTrainingName(training.getName());
         trainingAusfuehrung.setUser(user);
         trainingAusfuehrung.setOrt(request.getOrt());
         trainingAusfuehrung.setDauerSekunden(request.getDauerSekunden());
         if (request.getDatum() != null) {
             trainingAusfuehrung.setCreatedAt(request.getDatum().atTime(12, 0));
         }
+
+        if (request.getTrainingId() != null) {
+            Training training = trainingRepository.findById(request.getTrainingId())
+                    .orElseThrow(() -> new RuntimeException("Training not found"));
+
+            if (!isTrainingAccessible(training, user)) {
+                throw new RuntimeException("Not authorized to use this training");
+            }
+
+            trainingAusfuehrung.setTraining(training);
+            trainingAusfuehrung.setTrainingName(training.getName());
+        } else {
+            // Schnellerfassung: einzelne Ausdauer-Uebung ohne umschliessenden Trainingsplan
+            // (z.B. "Joggen" aus dem Kalender-Picker) - trainingName kommt dann von der Uebung selbst.
+            List<UebungSessionRequest> sessions = request.getUebungSessions();
+            if (sessions == null || sessions.size() != 1) {
+                throw new RuntimeException("Ohne Trainingsplan ist genau eine Uebung pro Eintrag erlaubt");
+            }
+
+            Uebung uebung = uebungRepository.findById(sessions.get(0).getUebungId())
+                    .orElseThrow(() -> new RuntimeException("Uebung not found"));
+
+            if (!isUebungAccessible(uebung, user)) {
+                throw new RuntimeException("Not authorized to use this uebung");
+            }
+            if (uebung.getTyp() != UebungTyp.AUSDAUER) {
+                throw new RuntimeException("Nur Ausdauer-Uebungen koennen ohne Trainingsplan erfasst werden");
+            }
+
+            trainingAusfuehrung.setTrainingName(uebung.getName());
+        }
+
         trainingAusfuehrung.setUebungSessions(buildUebungSessions(trainingAusfuehrung, request.getUebungSessions(), user));
 
         return trainingAusfuehrungRepository.save(trainingAusfuehrung);
