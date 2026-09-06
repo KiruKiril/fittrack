@@ -69,7 +69,10 @@
       @for (s of splits(); track s.id) {
         <a class="card card-pad split-card" [routerLink]="['/splits', s.id]">
           <div class="row-between">
-            <h3>{{ s.name }}</h3>
+            <div class="row">
+              <h3>{{ s.name }}</h3>
+              @if (s.aktiv) { <span class="badge badge-kraft">Aktiv</span> }
+            </div>
             <button class="btn btn-danger btn-sm" (click)="remove(s, $event)">Löschen</button>
           </div>
           @if (s.beschreibung) { <p class="split-desc">{{ s.beschreibung }}</p> }

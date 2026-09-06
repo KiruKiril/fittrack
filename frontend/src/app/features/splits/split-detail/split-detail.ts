@@ -19,6 +19,8 @@ export class SplitDetail {
   loading = signal(true);
   error = signal<string | null>(null);
   advancing = signal(false);
+  activating = signal(false);
+  settingNextId = signal<number | null>(null);
 
   constructor() {
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -66,6 +68,44 @@ export class SplitDetail {
     this.splitService.delete(s.id).subscribe({
       next: () => this.router.navigate(['/splits']),
       error: (err) => this.error.set(extractErrorMessage(err, 'Split konnte nicht gelöscht werden.'))
+    });
+  }
+
+  toggleActive(): void {
+    const s = this.split();
+    if (!s?.id) return;
+    this.activating.set(true);
+
+    const onSuccess = () => {
+      this.split.update((current) => (current ? { ...current, aktiv: !current.aktiv } : current));
+      this.activating.set(false);
+    };
+    const onError = (err: unknown) => {
+      this.activating.set(false);
+      this.error.set(extractErrorMessage(err, 'Aktiver Split konnte nicht geändert werden.'));
+    };
+
+    if (s.aktiv) {
+      this.splitService.deactivate().subscribe({ next: onSuccess, error: onError });
+    } else {
+      this.splitService.activate(s.id).subscribe({ next: onSuccess, error: onError });
+    }
+  }
+
+  setNext(splitTrainingId: number | undefined): void {
+    const s = this.split();
+    if (!s?.id || !splitTrainingId) return;
+    this.settingNextId.set(splitTrainingId);
+
+    this.splitService.setNext(s.id, splitTrainingId).subscribe({
+      next: (updated) => {
+        this.split.set(updated);
+        this.settingNextId.set(null);
+      },
+      error: (err) => {
+        this.settingNextId.set(null);
+        this.error.set(extractErrorMessage(err, 'Konnte nicht als Nächstes festgelegt werden.'));
+      }
     });
   }
 }

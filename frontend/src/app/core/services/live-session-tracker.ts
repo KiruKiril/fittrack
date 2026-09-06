@@ -3,6 +3,7 @@ import { Injectable, signal } from '@angular/core';
 export interface ActiveLiveSession {
   trainingId: number;
   trainingName: string;
+  splitId: number | null;
 }
 
 const STORAGE_PREFIX = 'fittrack-live-';
@@ -17,8 +18,8 @@ const STORAGE_PREFIX = 'fittrack-live-';
 export class LiveSessionTracker {
   active = signal<ActiveLiveSession | null>(this.findActiveFromStorage());
 
-  start(trainingId: number, trainingName: string): void {
-    this.active.set({ trainingId, trainingName });
+  start(trainingId: number, trainingName: string, splitId: number | null = null): void {
+    this.active.set({ trainingId, trainingName, splitId });
   }
 
   clear(): void {
@@ -38,7 +39,11 @@ export class LiveSessionTracker {
         if (state?.phase && state.phase !== 'done' && state.phase !== 'intro') {
           const trainingId = Number(key.slice(STORAGE_PREFIX.length));
           if (Number.isFinite(trainingId)) {
-            return { trainingId, trainingName: state.trainingName ?? 'Training' };
+            return {
+              trainingId,
+              trainingName: state.trainingName ?? 'Training',
+              splitId: Number.isFinite(state.splitId) ? state.splitId : null
+            };
           }
         }
       }

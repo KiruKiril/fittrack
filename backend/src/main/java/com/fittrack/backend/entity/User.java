@@ -34,6 +34,9 @@ public class User implements UserDetails {
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
+    /** Id des vom User als "aktiv" markierten Splits (optional, null = keiner aktiv). */
+    private Long aktiverSplitId;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

@@ -28,4 +28,5 @@ export interface Split {
   createdAt?: string;
   trainings: SplitTraining[];
   sportarten?: string[];
+  aktiv?: boolean;
 }

@@ -22,7 +22,7 @@
   </header>
 
   @if (liveSessionTracker.active(); as session) {
-    <a class="live-banner" [routerLink]="['/trainings', session.trainingId, 'live']">
+    <a class="live-banner" [routerLink]="['/trainings', session.trainingId, 'live']" [queryParams]="liveBannerQueryParams(session)">
       <span class="live-banner-dot"></span>
       <span class="live-banner-text">
         <strong>{{ session.trainingName }}</strong> läuft noch

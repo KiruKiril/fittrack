@@ -8,15 +8,21 @@
   } @else if (split(); as s) {
     <div class="page-header">
       <div>
-        <h1>{{ s.name }}</h1>
+        <div class="row">
+          <h1>{{ s.name }}</h1>
+          @if (s.aktiv) { <span class="badge badge-kraft">Aktiv</span> }
+        </div>
         @if (s.beschreibung) { <p>{{ s.beschreibung }}</p> }
       </div>
       <div class="row">
         @if (s.naechstesTraining) {
-          <a class="btn btn-primary" [routerLink]="['/trainings', s.naechstesTraining.trainingId, 'live']">▶ Nächstes Training</a>
+          <a class="btn btn-primary" [routerLink]="['/trainings', s.naechstesTraining.trainingId, 'live']" [queryParams]="{splitId: s.id}">▶ Nächstes Training</a>
         }
         <button class="btn btn-secondary" [disabled]="advancing()" (click)="advance()">
           {{ advancing() ? 'Springt weiter…' : 'Weiter →' }}
+        </button>
+        <button class="btn btn-secondary" [disabled]="activating()" (click)="toggleActive()">
+          {{ activating() ? 'Speichert…' : (s.aktiv ? 'Nicht mehr aktiv' : 'Als aktiv markieren') }}
         </button>
         <button class="btn btn-danger" (click)="remove()">Löschen</button>
       </div>
@@ -24,12 +30,18 @@
 
     <div class="card">
       @for (t of sortedTrainings(s); track t.id) {
-        <a class="split-row" [class.split-row-next]="isNext(s, t.id)" [routerLink]="['/trainings', t.trainingId]">
+        <div class="split-row" [class.split-row-next]="isNext(s, t.id)">
           <span class="split-row-index tabular">{{ t.reihenfolge }}</span>
-          <span class="split-row-name">{{ t.trainingName }}</span>
+          <a class="split-row-name" [routerLink]="['/trainings', t.trainingId]">{{ t.trainingName }}</a>
           @if (t.wochentag) { <span class="split-row-tag">{{ t.wochentag }}</span> }
-          @if (isNext(s, t.id)) { <span class="split-row-next-badge">Als Nächstes</span> }
-        </a>
+          @if (isNext(s, t.id)) {
+            <span class="split-row-next-badge">Als Nächstes</span>
+          } @else {
+            <button class="link-btn" [disabled]="settingNextId() === t.id" (click)="setNext(t.id)">
+              {{ settingNextId() === t.id ? 'Wird gesetzt…' : 'Als Nächstes wählen' }}
+            </button>
+          }
+        </div>
       }
     </div>
   }

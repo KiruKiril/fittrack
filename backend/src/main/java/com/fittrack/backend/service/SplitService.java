@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -155,10 +156,77 @@ public class SplitService {
         return splitRepository.save(split);
     }
 
+    /**
+     * Legt gezielt fest, welcher SplitTraining-Eintrag als Naechstes dran ist - im Unterschied zu
+     * advance() (immer nur relativ +1) kann hier ein beliebiger Eintrag aus der Liste gewaehlt
+     * werden, um z.B. ein Training vorzuziehen, zu wiederholen oder zu ueberspringen. Die
+     * automatische Reihenfolge (aktuellerIndex) bleibt danach einfach an dieser Stelle stehen und
+     * laeuft von dort aus normal weiter.
+     */
+    @Transactional
+    public Split setNext(Long id, Long splitTrainingId, String username) {
+        User user = getUser(username);
+        Split split = findOwnedSplit(id, user);
+
+        List<SplitTraining> sortiert = split.getTrainings().stream()
+                .sorted((a, b) -> Integer.compare(a.getReihenfolge(), b.getReihenfolge()))
+                .collect(Collectors.toList());
+
+        int index = -1;
+        for (int i = 0; i < sortiert.size(); i++) {
+            if (sortiert.get(i).getId().equals(splitTrainingId)) {
+                index = i;
+                break;
+            }
+        }
+        if (index < 0) {
+            throw new RuntimeException("Dieser Trainings-Eintrag gehoert nicht zu diesem Split");
+        }
+
+        split.setAktuellerIndex(index);
+        return splitRepository.save(split);
+    }
+
+    /** Markiert diesen Split als den "aktiven" Split des Users (max. einer gleichzeitig). */
+    @Transactional
+    public Split activateSplit(Long id, String username) {
+        User user = getUser(username);
+        Split split = findOwnedSplit(id, user);
+
+        user.setAktiverSplitId(split.getId());
+        userRepository.save(user);
+
+        return split;
+    }
+
+    /** Hebt die Markierung als aktiver Split auf (kein aktiver Split mehr). */
+    @Transactional
+    public void deactivateSplit(String username) {
+        User user = getUser(username);
+        user.setAktiverSplitId(null);
+        userRepository.save(user);
+    }
+
+    /** Der aktuell als "aktiv" markierte Split des Users, falls vorhanden. */
+    public Optional<Split> getActiveSplit(String username) {
+        User user = getUser(username);
+        if (user.getAktiverSplitId() == null) {
+            return Optional.empty();
+        }
+        return splitRepository.findById(user.getAktiverSplitId())
+                .filter(s -> s.getUser() != null && s.getUser().getId().equals(user.getId()));
+    }
+
     @Transactional
     public void deleteSplit(Long id, String username) {
         User user = getUser(username);
         Split split = findOwnedSplit(id, user);
+
+        if (id.equals(user.getAktiverSplitId())) {
+            user.setAktiverSplitId(null);
+            userRepository.save(user);
+        }
+
         splitRepository.delete(split);
     }
 

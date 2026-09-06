@@ -25,8 +25,14 @@ public class SplitResponse {
     private List<SplitTrainingResponse> trainings;
     /** Namen der zugeordneten Sportarten (offen erweiterbare Liste), fuer die Bibliotheks-Filterung. */
     private List<String> sportarten;
+    /** true = dieser Split ist der vom User als "aktiv" markierte Split. */
+    private boolean aktiv;
 
     public static SplitResponse from(Split split) {
+        return from(split, false);
+    }
+
+    public static SplitResponse from(Split split, boolean aktiv) {
         SplitResponse dto = new SplitResponse();
         dto.setId(split.getId());
         dto.setName(split.getName());
@@ -34,6 +40,7 @@ public class SplitResponse {
         dto.setBibliothek(split.getUser() == null);
         dto.setAktuellerIndex(split.getAktuellerIndex());
         dto.setCreatedAt(split.getCreatedAt());
+        dto.setAktiv(aktiv);
         dto.setSportarten(
                 split.getSportarten() == null
                         ? Collections.emptyList()

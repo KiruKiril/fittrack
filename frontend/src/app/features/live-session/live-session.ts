@@ -6,6 +6,7 @@ import { forkJoin } from 'rxjs';
 import { TrainingService } from '../../core/services/training.service';
 import { UebungService } from '../../core/services/uebung.service';
 import { LogService } from '../../core/services/log.service';
+import { SplitService } from '../../core/services/split.service';
 import { Training } from '../../core/models/training.model';
 import { Uebung, UebungTyp } from '../../core/models/uebung.model';
 import { TrainingAusfuehrung } from '../../core/models/log.model';
@@ -83,6 +84,7 @@ interface PersistedState {
   restStartedAt: number | null;
   timings: (StepTiming | null)[];
   sessionInputs: [number, SessionInput][];
+  splitId: number | null;
 }
 
 interface SessionInput {
@@ -100,12 +102,17 @@ export class LiveSession implements OnDestroy {
   private trainingService = inject(TrainingService);
   private uebungService = inject(UebungService);
   private logService = inject(LogService);
+  private splitService = inject(SplitService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private liveSessionTracker = inject(LiveSessionTracker);
 
   private trainingId = Number(this.route.snapshot.paramMap.get('id'));
   private storageKey = `fittrack-live-${this.trainingId}`;
+  /** Split, in dessen Kontext dieses Training gestartet wurde (ueber "▶ Naechstes Training"
+   *  im Split-Detail navigiert) - falls vorhanden, ruecht der Split nach erfolgreichem Speichern
+   *  automatisch zum naechsten Training weiter (siehe submitLog()). */
+  private splitId: number | null = this.readSplitIdFromQueryParams();
   private timerHandle: ReturnType<typeof setInterval> | null = null;
   private restEndsAt: number | null = null;
   private sessionStartedAt: number | null = null;
@@ -183,6 +190,12 @@ export class LiveSession implements OnDestroy {
 
   ngOnDestroy(): void {
     if (this.timerHandle) clearInterval(this.timerHandle);
+  }
+
+  private readSplitIdFromQueryParams(): number | null {
+    const raw = this.route.snapshot.queryParamMap.get('splitId');
+    const n = Number(raw);
+    return raw !== null && Number.isFinite(n) ? n : null;
   }
 
   private buildSteps(
@@ -323,7 +336,7 @@ export class LiveSession implements OnDestroy {
     this.sessionStartedAt = Date.now();
     this.currentStepStartedAt = Date.now();
     this.applyPreviousValues(this.currentStep());
-    this.liveSessionTracker.start(this.trainingId, this.training()?.name ?? '');
+    this.liveSessionTracker.start(this.trainingId, this.training()?.name ?? '', this.splitId);
     this.persist();
   }
 
@@ -558,11 +571,23 @@ export class LiveSession implements OnDestroy {
       next: (created) => {
         this.saving.set(false);
         this.createdLogId.set(created.id ?? null);
+        this.advanceSplitIfPresent();
       },
       error: (err) => {
         this.saving.set(false);
         this.error.set(extractErrorMessage(err, 'Training konnte nicht gespeichert werden.'));
       }
+    });
+  }
+
+  /** Rueckt den Split, in dessen Kontext dieses Training gestartet wurde, automatisch zum
+   *  naechsten Training weiter - nur nach erfolgreichem Speichern (siehe submitLog()), nie bei
+   *  Verwerfen/Abbrechen. Ein Fehlschlag hier soll den bereits erfolgreich gespeicherten Log-
+   *  Eintrag nicht als Fehler erscheinen lassen, daher wird nur geloggt statt dem User angezeigt. */
+  private advanceSplitIfPresent(): void {
+    if (this.splitId === null) return;
+    this.splitService.advance(this.splitId).subscribe({
+      error: (err) => console.error('Split konnte nicht automatisch weiterspringen', err)
     });
   }
 
@@ -617,7 +642,8 @@ export class LiveSession implements OnDestroy {
         currentStepStartedAt: this.currentStepStartedAt,
         restStartedAt: this.restStartedAt,
         timings: this.timings,
-        sessionInputs: Array.from(this.sessionInputsByUebungId.entries())
+        sessionInputs: Array.from(this.sessionInputsByUebungId.entries()),
+        splitId: this.splitId
       };
       localStorage.setItem(this.storageKey, JSON.stringify(state));
     } catch {
@@ -654,6 +680,7 @@ export class LiveSession implements OnDestroy {
       this.restStartedAt = state.restStartedAt ?? null;
       this.timings = state.timings ?? new Array(this.steps.length).fill(null);
       this.sessionInputsByUebungId = new Map(state.sessionInputs ?? []);
+      this.splitId = state.splitId ?? this.splitId;
 
       if (state.phase === 'resting' && state.restEndsAt) {
         this.restEndsAt = state.restEndsAt;
@@ -671,7 +698,7 @@ export class LiveSession implements OnDestroy {
       }
 
       if (this.phase() === 'performing' || this.phase() === 'resting' || this.phase() === 'review') {
-        this.liveSessionTracker.start(this.trainingId, this.training()?.name ?? state.trainingName ?? '');
+        this.liveSessionTracker.start(this.trainingId, this.training()?.name ?? state.trainingName ?? '', this.splitId);
       }
     } catch {
       this.clearPersisted();

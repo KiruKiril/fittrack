@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { API_BASE } from '../api-base';
 import { Split } from '../models/split.model';
 
@@ -31,6 +32,24 @@ export class SplitService {
 
   advance(id: number): Observable<Split> {
     return this.http.post<Split>(`${this.apiUrl}/${id}/weiter`, {});
+  }
+
+  setNext(id: number, splitTrainingId: number): Observable<Split> {
+    return this.http.put<Split>(`${this.apiUrl}/${id}/naechstes/${splitTrainingId}`, {});
+  }
+
+  activate(id: number): Observable<Split> {
+    return this.http.post<Split>(`${this.apiUrl}/${id}/aktivieren`, {});
+  }
+
+  deactivate(): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/deaktivieren`, {});
+  }
+
+  getActive(): Observable<Split | null> {
+    return this.http.get<Split>(`${this.apiUrl}/aktiv`, { observe: 'response' }).pipe(
+      map((res) => (res.status === 204 ? null : res.body))
+    );
   }
 
   getBibliothek(): Observable<Split[]> {
