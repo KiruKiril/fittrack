@@ -5,12 +5,11 @@ import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-
 import { SplitService } from '../../../core/services/split.service';
 import { TrainingService } from '../../../core/services/training.service';
 import { Training } from '../../../core/models/training.model';
-import { SplitTraining, Wochentag, WOCHENTAGE } from '../../../core/models/split.model';
+import { SplitTraining } from '../../../core/models/split.model';
 import { extractErrorMessage } from '../../../core/error-message';
 
 interface PlanRow {
   trainingId: number | null;
-  wochentag: Wochentag | '';
 }
 
 @Component({
@@ -23,8 +22,6 @@ export class SplitForm {
   private splitService = inject(SplitService);
   private trainingService = inject(TrainingService);
   private router = inject(Router);
-
-  wochentage = WOCHENTAGE;
 
   name = '';
   beschreibung = '';
@@ -49,7 +46,7 @@ export class SplitForm {
   }
 
   private emptyRow(): PlanRow {
-    return { trainingId: null, wochentag: '' };
+    return { trainingId: null };
   }
 
   addRow(): void {
@@ -98,8 +95,7 @@ export class SplitForm {
 
     const trainings: SplitTraining[] = gueltigeRows.map((r, i) => ({
       trainingId: r.trainingId as number,
-      reihenfolge: i + 1,
-      wochentag: r.wochentag || null
+      reihenfolge: i + 1
     }));
 
     this.saving.set(true);

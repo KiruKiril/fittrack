@@ -45,6 +45,25 @@
                   }
                 </div>
               }
+              @if (day.planbar) {
+                <div class="calendar-day-plan">
+                  <select
+                    class="calendar-plan-select"
+                    [class.is-vorschlag]="!day.geplanteTrainingId"
+                    [ngModel]="day.geplanteTrainingId ?? day.vorschlagTrainingId"
+                    (ngModelChange)="planTraining(day, $event)"
+                    [disabled]="savingDay() === day.key"
+                    [name]="'plan-' + day.key">
+                    <option [ngValue]="null">– kein Training –</option>
+                    @for (t of trainings(); track t.id) {
+                      <option [ngValue]="t.id">{{ t.name }}</option>
+                    }
+                  </select>
+                  @if (day.geplanteTrainingId) {
+                    <button type="button" class="calendar-plan-reset" (click)="resetPlanung(day)" aria-label="Planung zurücksetzen">↺</button>
+                  }
+                </div>
+              }
             </div>
           }
         </div>

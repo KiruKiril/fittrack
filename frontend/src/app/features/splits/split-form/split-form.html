@@ -36,7 +36,7 @@
       <div class="stack">
         <div>
           <h2>Trainings im Split</h2>
-          <p class="split-hint">Reihenfolge per Griff ziehen oder mit den Pfeilen anpassen. Wochentag ist optional — ohne feste Tage läuft der Split einfach der Reihe nach durch.</p>
+          <p class="split-hint">Reihenfolge per Griff ziehen oder mit den Pfeilen anpassen. Wann welches Training ansteht, planst du im Kalender.</p>
         </div>
 
         <div class="plan-row-list" cdkDropList (cdkDropListDropped)="drop($event)">
@@ -65,15 +65,6 @@
                     <option [ngValue]="null">— auswählen —</option>
                     @for (t of trainings(); track t.id) {
                       <option [ngValue]="t.id">{{ t.name }}</option>
-                    }
-                  </select>
-                </div>
-                <div class="field">
-                  <label>Wochentag (optional)</label>
-                  <select [(ngModel)]="row.wochentag" [name]="'wochentag-' + $index">
-                    <option value="">— kein fester Tag —</option>
-                    @for (w of wochentage; track w.value) {
-                      <option [value]="w.value">{{ w.label }}</option>
                     }
                   </select>
                 </div>

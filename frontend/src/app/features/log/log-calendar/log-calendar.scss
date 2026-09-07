@@ -39,7 +39,7 @@
 }
 
 .calendar-day {
-  min-height: 84px;
+  min-height: 108px;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
@@ -106,14 +106,59 @@
   text-overflow: ellipsis;
 }
 
+.calendar-day-plan {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: auto;
+}
+
+.calendar-plan-select {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.68rem;
+  padding: 2px 3px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+
+  &.is-vorschlag {
+    color: var(--ink-faint);
+    font-style: italic;
+    border-style: dashed;
+  }
+}
+
+.calendar-plan-reset {
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  color: var(--ink-faint);
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 2px 3px;
+  border-radius: 4px;
+
+  &:hover {
+    background: var(--danger-bg);
+    color: var(--danger);
+  }
+}
+
 @media (max-width: 640px) {
   .calendar-day {
-    min-height: 56px;
+    min-height: 80px;
     padding: 4px;
   }
 
   .calendar-day-log {
     font-size: 0.6rem;
     padding: 1px 3px;
+  }
+
+  .calendar-plan-select {
+    font-size: 0.6rem;
+    padding: 1px 2px;
   }
 }

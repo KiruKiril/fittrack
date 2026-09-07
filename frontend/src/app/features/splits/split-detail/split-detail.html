@@ -33,7 +33,6 @@
         <div class="split-row" [class.split-row-next]="isNext(s, t.id)">
           <span class="split-row-index tabular">{{ t.reihenfolge }}</span>
           <a class="split-row-name" [routerLink]="['/trainings', t.trainingId]">{{ t.trainingName }}</a>
-          @if (t.wochentag) { <span class="split-row-tag">{{ t.wochentag }}</span> }
           @if (isNext(s, t.id)) {
             <span class="split-row-next-badge">Als Nächstes</span>
           } @else {
