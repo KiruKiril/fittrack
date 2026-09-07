@@ -37,6 +37,9 @@ public class User implements UserDetails {
     /** Id des vom User als "aktiv" markierten Splits (optional, null = keiner aktiv). */
     private Long aktiverSplitId;
 
+    /** Wie viele Wochen im Voraus der User im Kalender planen darf (null = Standardwert verwenden). */
+    private Integer planungshorizontWochen;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

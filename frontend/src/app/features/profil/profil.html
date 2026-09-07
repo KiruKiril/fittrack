@@ -1,0 +1,40 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Profil</h1>
+      <p>Persönliche Einstellungen für {{ username }}.</p>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="form-error">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <p class="muted">Lädt…</p>
+  } @else {
+    <form class="stack" (ngSubmit)="speichern()">
+      <div class="card card-pad stack">
+        <div class="field">
+          <label for="horizont">Planungshorizont (Wochen im Voraus)</label>
+          <input
+            id="horizont"
+            type="number"
+            min="1"
+            max="8"
+            [(ngModel)]="planungshorizontWochen"
+            name="horizont" />
+          <p class="field-hint">Wie viele Wochen im Voraus du im Kalender Trainings einplanen kannst.</p>
+        </div>
+      </div>
+
+      @if (saved()) {
+        <p class="form-success">Gespeichert.</p>
+      }
+
+      <button class="btn btn-primary" type="submit" [disabled]="saving()">
+        {{ saving() ? 'Speichert…' : 'Speichern' }}
+      </button>
+    </form>
+  }
+</div>

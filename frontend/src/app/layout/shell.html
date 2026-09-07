@@ -15,7 +15,7 @@
       </nav>
 
       <div class="user">
-        <span class="username">{{ username }}</span>
+        <a class="username" routerLink="/profil" routerLinkActive="active">{{ username }}</a>
         <button class="btn btn-secondary btn-sm" (click)="logout()">Abmelden</button>
       </div>
     </div>
@@ -55,6 +55,10 @@
     <a routerLink="/log" routerLinkActive="active">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12.5" r="8"/><path d="M12 8v4.5l3 2M9 3h6"/></svg>
       <span>Verlauf</span>
+    </a>
+    <a routerLink="/profil" routerLinkActive="active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c1.2-3.6 4-5.5 7-5.5s5.8 1.9 7 5.5"/></svg>
+      <span>Profil</span>
     </a>
   </nav>
 </div>
