@@ -1,0 +1,117 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Fortschritt</h1>
+      <p>Dein Verlauf über die Zeit.</p>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="form-error">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <p class="muted">Lädt…</p>
+  } @else {
+    <div class="mode-toggle">
+      <button type="button" class="mode-btn" [class.active]="modus() === 'uebung'" (click)="modus.set('uebung')">Pro Übung</button>
+      <button type="button" class="mode-btn" [class.active]="modus() === 'woche'" (click)="modus.set('woche')">Wochenübersicht</button>
+    </div>
+
+    @if (modus() === 'uebung') {
+      @if (kraftUebungen().length === 0) {
+        <div class="empty-state">
+          <p>Du hast noch keine Kraft-Übungen angelegt.</p>
+          <a class="btn btn-primary btn-sm" routerLink="/uebungen">Zu den Übungen</a>
+        </div>
+      } @else {
+        <div class="card card-pad">
+          <div class="field">
+            <label for="uebung">Übung</label>
+            <select id="uebung" [ngModel]="uebungId()" (ngModelChange)="uebungId.set($event)" name="uebung">
+              @for (u of kraftUebungen(); track u.id) {
+                <option [ngValue]="u.id">{{ u.name }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        @if (!hatVerlauf()) {
+          <div class="empty-state">
+            <p>Für diese Übung wurden noch keine Sätze geloggt.</p>
+          </div>
+        } @else {
+          <div class="card card-pad stack">
+            <div>
+              <h3>Bestleistungen</h3>
+              <div class="pr-row">
+                @if (bestesGewicht(); as bg) {
+                  <div class="pr-card">
+                    <span class="pr-label">Höchstes Gewicht</span>
+                    <span class="pr-value tabular">{{ bg.gewicht }} kg</span>
+                    <span class="pr-date">{{ formatDatumLang(bg.datum) }}</span>
+                  </div>
+                }
+                @if (meisteWiederholungen(); as mw) {
+                  <div class="pr-card">
+                    <span class="pr-label">Meiste Wiederholungen</span>
+                    <span class="pr-value tabular">{{ mw.wiederholungen }} Wdh.</span>
+                    <span class="pr-date">{{ formatDatumLang(mw.datum) }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="card card-pad stack">
+            <h3>Gewicht (bester Satz je Einheit)</h3>
+            <svg [attr.viewBox]="'0 0 ' + chartWidth + ' ' + chartHeight" class="chart-svg">
+              <path [attr.d]="gewichtChart().path" class="chart-line" />
+              @for (p of gewichtChart().points; track $index) {
+                <circle [attr.cx]="p.x" [attr.cy]="p.y" r="2.5" class="chart-dot" />
+              }
+            </svg>
+            <div class="chart-axis">
+              <span>{{ ersterTermin() }}</span>
+              <span>{{ letzterTermin() }}</span>
+            </div>
+          </div>
+
+          <div class="card card-pad stack">
+            <h3>Volumen (Wdh. × Gewicht je Einheit)</h3>
+            <svg [attr.viewBox]="'0 0 ' + chartWidth + ' ' + chartHeight" class="chart-svg">
+              <path [attr.d]="volumenChart().path" class="chart-line chart-line-volumen" />
+              @for (p of volumenChart().points; track $index) {
+                <circle [attr.cx]="p.x" [attr.cy]="p.y" r="2.5" class="chart-dot chart-dot-volumen" />
+              }
+            </svg>
+            <div class="chart-axis">
+              <span>{{ ersterTermin() }}</span>
+              <span>{{ letzterTermin() }}</span>
+            </div>
+          </div>
+        }
+      }
+    } @else {
+      <div class="card card-pad stack">
+        <h3>Gesamtvolumen pro Woche (alle Kraft-Übungen)</h3>
+        <svg [attr.viewBox]="'0 0 ' + chartWidth + ' ' + chartHeight" class="chart-svg">
+          <path [attr.d]="wochenChart().path" class="chart-line" />
+          @for (p of wochenChart().points; track $index) {
+            <circle [attr.cx]="p.x" [attr.cy]="p.y" r="2.5" class="chart-dot" />
+          }
+        </svg>
+      </div>
+
+      <div class="card">
+        @for (w of wochen(); track w.key) {
+          <div class="week-row">
+            <span class="week-label">{{ w.label }}</span>
+            <span class="week-stat tabular">{{ w.einheiten }} {{ w.einheiten === 1 ? 'Einheit' : 'Einheiten' }}</span>
+            <span class="week-stat tabular">{{ w.volumen | number: '1.0-0' }} kg Volumen</span>
+          </div>
+        }
+      </div>
+    }
+  }
+</div>
